@@ -1,0 +1,21 @@
+{
+  "name": "opencode-mcp",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cyanheads/arxiv-mcp-server": "latest",
+    "@cyanheads/git-mcp-server": "latest",
+    "@cyanheads/pubchem-mcp-server": "latest",
+    "@modelcontextprotocol/server-filesystem": "latest",
+    "@modelcontextprotocol/server-memory": "latest",
+    "@modelcontextprotocol/server-puppeteer": "latest",
+    "@modelcontextprotocol/server-sequential-thinking": "latest",
+    "@opencode-ai/plugin": "1.14.48",
+    "@playwright/mcp": "latest",
+    "@sylphx/pdf-reader-mcp": "latest",
+    "duckduckgo-mcp-server": "latest",
+    "mcp-fetch-server": "latest",
+    "sonarqube-api-mcp": "^0.2.0",
+    "typescript-language-server": "^5.3.0"
+  }
+}
