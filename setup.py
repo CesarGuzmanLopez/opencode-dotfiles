@@ -48,7 +48,6 @@ PACKAGE_JSON = r'''{
     "@sylphx/pdf-reader-mcp": "latest",
     "duckduckgo-mcp-server": "latest",
     "mcp-fetch-server": "latest",
-    "sonarqube-api-mcp": "^0.2.0",
     "typescript-language-server": "^5.3.0"
   },
   "devDependencies": {
@@ -584,7 +583,6 @@ When user says: inicializa / empieza / start / setup / install → run full setu
 - If verify-opencode fails → REVERT change immediately
 - PLATFORM-AWARE: paths differ by OS. Use ~/.local/bin/uvx on Linux, brew on Mac, %APPDATA% on Windows
 - Respect PEP 668 on Arch (no system pip, use uv instead)
-- SonarQube is optional (needs Docker)
 - LSPs are project-dependent, do NOT force at init
 '''
 
