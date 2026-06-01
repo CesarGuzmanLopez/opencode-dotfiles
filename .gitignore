@@ -10,3 +10,15 @@ package-lock.json
 Thumbs.db
 .vscode/
 *.bak
+
+# API keys — NUNCA commitear
+opencode.jsonc
+.env
+.env.*
+*.key
+secrets.json
+
+# Test files
+test.js
+comby_test.js
+__pycache__/
