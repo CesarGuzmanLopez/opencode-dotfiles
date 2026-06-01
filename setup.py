@@ -1221,7 +1221,7 @@ def write_file(path, content):
 
 def install_npm(target_dir):
     """Ejecuta npm install."""
-    step("NPM", "Instalando dependencias...")
+    step("NPM", "Instalando dependencias npm (MCP servers)...")
     try:
         r = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=10)
         ok(f"Node.js: {r.stdout.strip()}")
@@ -1234,7 +1234,7 @@ def install_npm(target_dir):
         r = subprocess.run(["npm", "install"], cwd=str(target_dir),
                            capture_output=True, text=True, timeout=600)
         if r.returncode == 0:
-            ok("npm install completado")
+            ok("npm install completado — MCP servers instalados")
             return True
         else:
             err(f"npm install falló: {r.stderr[-300:]}")
@@ -1242,6 +1242,187 @@ def install_npm(target_dir):
     except Exception as e:
         err(f"Error: {e}")
         return False
+
+
+def install_system_deps():
+    """Detecta e instala dependencias del sistema (comby, bat, etc.)."""
+    step("SISTEMA", "Dependencias del sistema...")
+
+    deps = {
+        "comby": {
+            "check": "comby --version",
+            "install": {
+                "linux": "yay -S comby-bin  # or: snap install comby",
+                "mac": "brew install comby",
+                "windows": "choco install comby  # or download from github.com/comby-tools/comby/releases",
+            },
+        },
+        "bat": {
+            "check": "bat --version",
+            "install": {
+                "linux": "sudo pacman -S bat  # or: sudo apt install bat",
+                "mac": "brew install bat",
+                "windows": "choco install bat",
+            },
+        },
+        "ripgrep": {
+            "check": "rg --version",
+            "install": {
+                "linux": "sudo pacman -S ripgrep  # or: sudo apt install ripgrep",
+                "mac": "brew install ripgrep",
+                "windows": "choco install ripgrep",
+            },
+        },
+        "fd": {
+            "check": "fd --version",
+            "install": {
+                "linux": "sudo pacman -S fd  # or: sudo apt install fd-find",
+                "mac": "brew install fd",
+                "windows": "choco install fd",
+            },
+        },
+    }
+
+    found = []
+    missing = []
+
+    for name, dep in deps.items():
+        try:
+            r = subprocess.run(
+                f"bash -c '{dep['check']}' 2>/dev/null" if not IS_WINDOWS else f"cmd /c {dep['check']} 2>nul",
+                shell=True, capture_output=True, timeout=10
+            )
+            if r.returncode == 0:
+                found.append(name)
+                ok(f"{name}: {r.stdout.strip().split(chr(10))[0][:50]}")
+            else:
+                missing.append(name)
+        except Exception:
+            missing.append(name)
+
+    if missing:
+        warn(f"Faltan: {', '.join(missing)}")
+        for name in missing:
+            install_cmd = deps[name]["install"].get(OS_NAME, "Ver documentación oficial")
+            info(f"  Instalar {name}: {install_cmd}")
+    else:
+        ok("Todas las dependencias del sistema encontradas")
+
+    return len(missing) == 0
+
+
+def install_python_deps():
+    """Instala paquetes Python necesarios (ruff, plotext, pylsp)."""
+    step("PYTHON", "Paquetes Python...")
+
+    packages = {
+        "ruff": "ruff --version",
+        "plotext": "python3 -c 'import plotext; print(plotext.__version__)'",
+        "python-lsp-server": "pylsp --version",
+    }
+
+    found = []
+    missing = []
+
+    for pkg, check_cmd in packages.items():
+        try:
+            r = subprocess.run(
+                f"bash -c '{check_cmd}'" if not IS_WINDOWS else f"cmd /c {check_cmd}",
+                shell=True, capture_output=True, text=True, timeout=10
+            )
+            if r.returncode == 0:
+                found.append(pkg)
+                ok(f"{pkg}: {r.stdout.strip()[:40]}")
+            else:
+                missing.append(pkg)
+        except Exception:
+            missing.append(pkg)
+
+    if missing:
+        warn(f"Faltan: {', '.join(missing)}")
+        # Intentar instalar con pip si --install-python fue pasado
+        for pkg in missing:
+            info(f"  Instalar: pip install {pkg}  (o: uv pip install {pkg})")
+    else:
+        ok("Todos los paquetes Python encontrados")
+
+    return len(missing) == 0
+
+
+def install_playwright():
+    """Instala navegadores de Playwright."""
+    step("PLAYWRIGHT", "Navegadores...")
+
+    # Verificar si ya existen
+    cache = Path.home() / ".cache" / "ms-playwright"
+    if IS_WINDOWS:
+        cache = Path(os.environ.get("LOCALAPPDATA", "")) / "ms-playwright"
+    if IS_MAC:
+        cache = Path.home() / "Library" / "Caches" / "ms-playwright"
+
+    if cache.exists() and any(cache.iterdir()):
+        ok(f"Navegadores ya instalados en {cache}")
+        return True
+
+    info("Instalando Chromium via Playwright...")
+    try:
+        r = subprocess.run(
+            ["npx", "playwright", "install", "chromium"],
+            capture_output=True, text=True, timeout=300
+        )
+        if r.returncode == 0:
+            ok("Chromium instalado via Playwright")
+            return True
+        else:
+            warn("No se pudo instalar Chromium automáticamente")
+            info("  Instalar manualmente: npx playwright install chromium")
+            return True  # No crítico
+    except Exception as e:
+        warn(f"Error: {e}")
+        info("  Se instalará bajo demanda al usar opencode")
+        return True  # No crítico
+
+
+def verify_installation(target_dir):
+    """Verifica que todo esté instalado correctamente."""
+    step("VERIFICACIÓN", "Comprobando instalación...")
+
+    checks = [
+        ("opencode.jsonc", target_dir / "opencode.jsonc"),
+        ("package.json",  target_dir / "package.json"),
+        (".gitignore",    target_dir / ".gitignore"),
+        ("tui.json",      target_dir / "tui.json"),
+        ("plugins/",      target_dir / "plugins"),
+        ("skills/",       target_dir / "skills"),
+        ("node_modules/", target_dir / "node_modules"),
+    ]
+
+    all_ok = True
+    for name, path in checks:
+        if path.exists():
+            ok(f"{name}")
+        else:
+            err(f"{name} — NO ENCONTRADO")
+            all_ok = False
+
+    # Contar MCP servers instalados
+    bin_dir = target_dir / "node_modules" / ".bin"
+    if bin_dir.exists():
+        mcp_bins = [f for f in bin_dir.iterdir()
+                    if any(k in f.name for k in ["mcp", "playwright", "duckduck", "arxiv", "pdf-reader", "pubchem", "git-mcp"])]
+        ok(f"MCP servers: {len(mcp_bins)} instalados")
+
+    # Contar plugins y skills
+    plugins_dir = target_dir / "plugins"
+    skills_dir = target_dir / "skills"
+    if plugins_dir.exists():
+        plugins = [f for f in plugins_dir.iterdir() if f.suffix == ".ts"]
+        ok(f"Plugins: {len(plugins)}")
+    if skills_dir.exists():
+        skills = [d for d in skills_dir.iterdir() if d.is_dir()]
+        ok(f"Skills: {len(skills)}")
+
+    return all_ok
 
 
 def main():
@@ -1257,6 +1438,9 @@ Ejemplos:
     parser.add_argument("--target", "-t", default=".", help="Directorio destino")
     parser.add_argument("--api-key", "-k", default=None, help="API key para chat.guzman-lopez.com")
     parser.add_argument("--skip-npm", action="store_true", help="Omitir npm install")
+    parser.add_argument("--skip-system", action="store_true", help="Omitir dependencias del sistema")
+    parser.add_argument("--skip-python", action="store_true", help="Omitir paquetes Python")
+    parser.add_argument("--skip-playwright", action="store_true", help="Omitir Playwright")
     parser.add_argument("--force", action="store_true", help="Sobreescribir archivos existentes")
     args = parser.parse_args()
 
@@ -1264,15 +1448,17 @@ Ejemplos:
   ╔══════════════════════════════════════════════════════════════╗
   ║         opencode Environment Installer                      ║
   ║         Genera TODO el entorno desde cero                    ║
-  ╚══════════════════════════════════════════════════════════════╝{C.R}""")
+  ║         Linux · macOS · Windows                              ║
+  ╚══════════════════════════════════════════════════════════════╝{C.R}
+  {C.DIM}Detectando OS: {OS_NAME}{C.R}""")
 
     # 1. Directorio destino
-    step("1/5", "Resolviendo directorio destino...")
+    step("1/7", "Resolviendo directorio destino...")
     target = Path(args.target).resolve()
     ok(f"Destino: {target}")
 
     # 2. API key
-    step("2/5", "Resolviendo API key...")
+    step("2/7", "Resolviendo API key...")
     api_key = args.api_key or os.environ.get("OPENCODE_API_KEY")
     if not api_key:
         existing = target / "opencode.jsonc"
@@ -1286,16 +1472,14 @@ Ejemplos:
         ok(f"API key configurada ({len(api_key)} chars)")
 
     # 3. Generar opencode.jsonc
-    step("3/5", "Generando opencode.jsonc...")
+    step("3/7", "Generando opencode.jsonc...")
     base_dir = str(target)
     config = OPENCODE_JSONC.replace("{BASE_DIR}", base_dir)
-    # --no-sandbox solo en Linux (en macOS/Windows no es necesario)
     no_sandbox = ', "--no-sandbox"' if IS_LINUX else ""
     config = config.replace("{NO_SANDBOX}", no_sandbox)
     if api_key != "__PRESERVE__":
         config = config.replace("{API_KEY}", api_key)
     else:
-        # Mantener la key existente
         existing_key = (target / "opencode.jsonc").read_text()
         import re
         m = re.search(r'"apiKey":\s*"([^"]+)"', existing_key)
@@ -1303,18 +1487,17 @@ Ejemplos:
             config = config.replace("{API_KEY}", m.group(1))
     write_file(target / "opencode.jsonc", config)
 
-    # 4. Generar plugins
-    step("4/5", "Generando plugins y skills...")
+    # 4. Generar plugins y skills
+    step("4/7", "Generando plugins y skills...")
     for name, content in PLUGINS.items():
         write_file(target / "plugins" / name, content)
     ok(f"{len(PLUGINS)} plugins generados")
 
-    # 5. Generar skills
     for name, content in SKILLS.items():
         write_file(target / "skills" / name, content)
     ok(f"{len(SKILLS)} skills generados")
 
-    # 6. Generar archivos auxiliares
+    # 5. Generar archivos auxiliares
     write_file(target / "package.json", PACKAGE_JSON)
     write_file(target / ".gitignore", GITIGNORE)
     write_file(target / "tui.json", TUI_JSON)
@@ -1322,13 +1505,34 @@ Ejemplos:
     mcp_conf = MCP_CONFIG.replace("SCRIPTS_DIR_PLACEHOLDER", str(target / "mcp" / "scripts"))
     write_file(target / "mcp" / "config.json", mcp_conf)
 
-    # 7. npm install
+    # 6. Instalar npm (MCP servers)
     if not args.skip_npm:
         install_npm(target)
     else:
         warn("Omitiendo npm install (--skip-npm)")
 
-    # 8. Resumen
+    # 7. Dependencias del sistema
+    if not args.skip_system:
+        install_system_deps()
+    else:
+        warn("Omitiendo dependencias del sistema (--skip-system)")
+
+    # 8. Paquetes Python
+    if not args.skip_python:
+        install_python_deps()
+    else:
+        warn("Omitiendo paquetes Python (--skip-python)")
+
+    # 9. Playwright
+    if not args.skip_playwright:
+        install_playwright()
+    else:
+        warn("Omitiendo Playwright (--skip-playwright)")
+
+    # 10. Verificación final
+    verify_installation(target)
+
+    # Resumen
     print(f"""{C.GRN}{C.B}
   ╔══════════════════════════════════════════════════════════════╗
   ║         ✓ Instalación completada                            ║
@@ -1337,7 +1541,7 @@ Ejemplos:
   {C.CYN}Config:{C.R}      {target}/opencode.jsonc
   {C.CYN}Plugins:{C.R}     {target}/plugins/  ({len(PLUGINS)} archivos)
   {C.CYN}Skills:{C.R}      {target}/skills/   ({len(SKILLS)} archivos)
-  {C.CYN}MCP:{C.R}         {target}/mcp/
+  {C.CYN}MCP:{C.R}         {target}/mcp/ + node_modules/
 
   {C.YEL}Para usar:{C.R}  cd {target} && opencode
   {C.DIM}opencode.jsonc NO se commitea (excluido en .gitignore){C.R}
