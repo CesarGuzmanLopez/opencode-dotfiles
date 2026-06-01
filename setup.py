@@ -14,10 +14,17 @@ Uso:
 
 import os
 import sys
+import platform
 import subprocess
 import argparse
 import shutil
 from pathlib import Path
+
+# Detectar OS una vez
+IS_LINUX   = sys.platform == "linux"
+IS_MAC     = sys.platform == "darwin"
+IS_WINDOWS = sys.platform == "win32"
+OS_NAME    = "linux" if IS_LINUX else ("mac" if IS_MAC else ("windows" if IS_WINDOWS else sys.platform))
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  ARCHIVOS EMBEBIDOS — Todo el proyecto opencode está aquí dentro           ║
@@ -1127,7 +1134,7 @@ OPENCODE_JSONC = r'''{
   "mcp": {
     "playwright": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium", "--no-sandbox"]
+      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium"{NO_SANDBOX}]
     },
     "sequential-thinking": {
       "type": "local", "enabled": true,
@@ -1282,6 +1289,9 @@ Ejemplos:
     step("3/5", "Generando opencode.jsonc...")
     base_dir = str(target)
     config = OPENCODE_JSONC.replace("{BASE_DIR}", base_dir)
+    # --no-sandbox solo en Linux (en macOS/Windows no es necesario)
+    no_sandbox = ', "--no-sandbox"' if IS_LINUX else ""
+    config = config.replace("{NO_SANDBOX}", no_sandbox)
     if api_key != "__PRESERVE__":
         config = config.replace("{API_KEY}", api_key)
     else:
