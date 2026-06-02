@@ -26,3 +26,9 @@ __pycache__/
 
 # IDE
 .continue/
+
+# CloakMCP — secrets y auditoría (NUNCA commitear)
+.cloak-keys/
+.cloak-audit.jsonl
+.cloak-vault.json
+cloak-policy.yaml
