@@ -2,12 +2,12 @@
 """
 opencode Environment Installer (Self-Contained)
 ================================================
-Script completamente autónomo. Genera TODO el entorno opencode desde cero.
-No necesita archivos externos — todo está embebido.
+Script completamente autonomo. Genera TODO el entorno opencode desde cero.
+No necesita archivos externos — todo esta embebido.
 
 Uso:
     python3 setup.py                           # Instala en directorio actual
-    python3 setup.py --target /ruta/destino    # Instala en ruta específica
+    python3 setup.py --target /ruta/destino    # Instala en ruta especifica
     python3 setup.py --api-key TU_LLAVE        # Pasa la API key
     OPENCODE_API_KEY=TU_LLAVE python3 setup.py # O por variable de entorno
 """
@@ -27,7 +27,7 @@ IS_WINDOWS = sys.platform == "win32"
 OS_NAME    = "linux" if IS_LINUX else ("mac" if IS_MAC else ("windows" if IS_WINDOWS else sys.platform))
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  ARCHIVOS EMBEBIDOS — Todo el proyecto opencode está aquí dentro           ║
+# ║  ARCHIVOS EMBEDIDOS — Todo el proyecto opencode esta aqui dentro           ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 # ── package.json ──────────────────────────────────────────────────────────────
@@ -36,24 +36,21 @@ PACKAGE_JSON = r'''{
   "private": true,
   "type": "module",
   "dependencies": {
-    "@cyanheads/arxiv-mcp-server": "latest",
     "@cyanheads/git-mcp-server": "latest",
     "@cyanheads/pubchem-mcp-server": "latest",
-    "@modelcontextprotocol/server-filesystem": "latest",
     "@modelcontextprotocol/server-memory": "latest",
-    "@modelcontextprotocol/server-puppeteer": "latest",
     "@modelcontextprotocol/server-sequential-thinking": "latest",
-    "@opencode-ai/plugin": "1.14.48",
+    "@opencode-ai/plugin": "1.15.10",
     "@playwright/mcp": "latest",
     "@sylphx/pdf-reader-mcp": "latest",
-    "duckduckgo-mcp-server": "latest",
-    "mcp-fetch-server": "latest",
+    "sonarqube-api-mcp": "^0.2.0",
     "typescript-language-server": "^5.3.0"
   },
   "devDependencies": {
     "@types/bun": "^1.3.14"
   }
 }'''
+
 
 # ── tui.json ──────────────────────────────────────────────────────────────────
 TUI_JSON = r'''{
@@ -75,7 +72,7 @@ Thumbs.db
 .vscode/
 *.bak
 
-# API keys y secrets — NUNCA commitear
+# API keys — NUNCA commitear
 opencode.jsonc
 .env
 .env.*
@@ -85,6 +82,7 @@ secrets.json
 
 # Generated files
 setup.log
+__pycache__/
 '''
 
 # ── mcp/config.json ──────────────────────────────────────────────────────────
@@ -206,7 +204,7 @@ export const CombyPlugin: Plugin = async (ctx) => {
 }
 '''
 
-PLUGINS["plotext.ts"] = """import { type Plugin, tool } from "@opencode-ai/plugin"
+PLUGINS["plotext.ts"] = r'''import { type Plugin, tool } from "@opencode-ai/plugin"
 
 export const PlotextPlugin: Plugin = async (ctx) => {
   return {
@@ -230,7 +228,7 @@ try:
 except ImportError:
     print("plotext not installed. Run: pip install plotext")
     sys.exit(0)
-data = json.loads('''${args.data}''')
+data = json.loads(\\'\\'\\'${args.data}\\'\\'\\')
 if "${args.title}": plt.title("${args.title}")
 if "${args.xlabel}": plt.xlabel("${args.xlabel}")
 if "${args.ylabel}": plt.ylabel("${args.ylabel}")
@@ -264,7 +262,7 @@ plt.show()
     },
   }
 }
-"""
+'''
 
 PLUGINS["ruff.ts"] = r'''import { type Plugin, tool } from "@opencode-ai/plugin"
 
@@ -312,16 +310,14 @@ async function detectRuff(dir) {
 PLUGINS["verify-deps.ts"] = r'''import { type Plugin, tool } from "@opencode-ai/plugin"
 
 const MCP_MAP = {
-  "duckduckgo": "duckduckgo-mcp-server",
-  "arxiv": "@cyanheads/arxiv-mcp-server",
+  "web-search": "web-search-mcp",
+  "arxiv": "arxiv-mcp-server",
   "git": "@cyanheads/git-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
   "pubchem": "@cyanheads/pubchem-mcp-server",
-  "puppeteer": "@modelcontextprotocol/server-puppeteer",
   "playwright": "@playwright/mcp",
   "sequential-thinking": "@modelcontextprotocol/server-sequential-thinking",
   "memory": "@modelcontextprotocol/server-memory",
-  "filesystem": "@modelcontextprotocol/server-filesystem",
 }
 
 export const VerifyDepsPlugin: Plugin = async (ctx) => {
@@ -348,15 +344,12 @@ export const VerifyDepsPlugin: Plugin = async (ctx) => {
             results.push(await check("uv/uvx", "uvx --version", false, "curl -LsSf https://astral.sh/uv/install.sh | sh"))
             results.push(await check("Git", "git --version", true, "Install from https://git-scm.com"))
             results.push(await check("pdftoppm", "pdftoppm --version 2>&1 | head -1", false, "pacman -S poppler | brew install poppler | choco install poppler"))
-          results.push(await check("comby", "comby --version 2>&1", false, "yay -S comby-bin (Arch) / brew install comby (macOS) / https://github.com/comby-tools/comby/releases"))
+            results.push(await check("comby", "comby --version 2>&1", false, "yay -S comby-bin (Arch) / brew install comby (macOS) / https://github.com/comby-tools/comby/releases"))
           }
           if (args.category === "all" || args.category === "mcp") {
             for (const [name, pkg] of Object.entries(MCP_MAP)) {
               results.push(await check(`mcp: ${name}`, `npx -y ${pkg} --version 2>&1`, false, `npx -y ${pkg}`))
             }
-          }
-          if (args.category === "all" || args.category === "python") {
-            results.push(await check("mcp: fetch", `uvx mcp-server-fetch --version 2>&1`, false, `uvx mcp-server-fetch`))
           }
           const missing = results.filter(r => !r.found)
           const ok = results.filter(r => r.found)
@@ -386,7 +379,7 @@ export const VerifyOpencodePlugin: Plugin = async (ctx) => {
         async execute(args, context) {
           let output = "# OpenCode Verification Report\n\n"
           const home = process.env.HOME || process.env.USERPROFILE || ""
-          const configPath = home ? `${home}/.config/opencode/opencode.json` : "~/.config/opencode/opencode.json"
+          const configPath = home ? `${home}/.config/opencode/opencode.jsonc` : "~/.config/opencode/opencode.jsonc"
 
           const check = async (name, cmd, timeoutMs = 5000) => {
             try {
@@ -538,60 +531,11 @@ export const SaveFindingsPlugin: Plugin = async (ctx) => {
 # ── SKILLS ────────────────────────────────────────────────────────────────────
 SKILLS = {}
 
-SKILLS["admin/SKILL.md"] = r'''---
-name: admin
-description: System setup wizard: installs ALL dependencies, MCPs, and LSPs. Scans project, creates/removes agents and commands.
----
-Your job: install ALL tools, create/delete agents, manage MCPs, create commands, and verify everything.
-
-=== AUTO-INITIALIZATION ===
-When user says: inicializa / empieza / start / setup / install → run full setup:
-1. Detect OS
-2. verify-deps(category='all')
-3. Install uv, pdftoppm, Node.js deps
-4. Ask before each install, use question tool for sudo
-5. verify-opencode() at end
-
-=== SYSTEM DEPENDENCIES ===
-- comby: structural code search (yay -S comby-bin / brew install comby)
-- bat, rg, fd, jq: code search tools (pacman -S / brew install)
-- gnuplot, ttyplot: charting tools
-- plotext, rich: Python visualization libs (pip install)
-- Use verify-deps to check what's installed.
-- Load system-tools skill for full reference.
-
-=== AGENT LIFECYCLE ===
-- CREATE: ask purpose → generate name/prompt/perms → write to opencode.json → verify-opencode()
-- DELETE: confirm → remove from JSON → verify-opencode()
-- MODIFY: change prompt/perms/model → verify-opencode()
-
-=== MCP MANAGEMENT ===
-- ADD: ask command → add to mcp section → verify-opencode()
-- REMOVE: set enabled:false → verify-opencode()
-
-=== PLUGIN CREATION ===
-- Use the plugin-creator skill to create new .ts plugin files.
-- Plugins go in ~/.config/opencode/plugins/ and are auto-discovered.
-- Load the skill: skill({ name: "plugin-creator" })
-
-=== COMMANDS ===
-- CREATE: write .md file in ~/.config/opencode/commands/
-- Each command has frontmatter: description, usage
-
-=== RULES ===
-- After ANY modification → run verify-opencode()
-- If verify-opencode fails → REVERT change immediately
-- PLATFORM-AWARE: paths differ by OS. Use ~/.local/bin/uvx on Linux, brew on Mac, %APPDATA% on Windows
-- Respect PEP 668 on Arch (no system pip, use uv instead)
-- LSPs are project-dependent, do NOT force at init
-'''
-
 SKILLS["coding/SKILL.md"] = r'''---
 name: coding
 description: General-purpose coding instructions for all coding agents.
 ---
-Available MCPs: ruff, git, pdf, duckduckgo, fetch, arxiv, puppeteer/playwright, sequential-thinking, memory, filesystem.
-Also available: comby-search, comby-replace for structural code search and replacement.
+Available: ruff, git, pdf, web-search, arxiv, playwright, sequential-thinking, memory, comby-search, comby-replace.
 
 Workflow: read code → plan → implement → **MUST ruff check** → test → commit.
 
@@ -630,27 +574,28 @@ You MUST complete ALL 5 rounds. Call research-save in round 5. FAILURE TO SAVE =
 
 ROUND 1 — SCOUT:
 1. Call sequentialthinking to break question into 3-5 sub-topics.
-2. Search each sub-topic with duckduckgo_web_search.
-3. Use fetch tools to read top results.
+2. Search each sub-topic with web-search_full-web-search (multi-engine: Bing/DuckDuckGo).
+3. Use web-search_get-single-web-page-content to read detailed results.
 4. List what you found and what gaps remain.
-5. Call save-findings with round=1 to persist findings.
+5. Call save-findings with filename="round-1" to persist findings.
 6. DO NOT proceed without listing gaps.
 
 ROUND 2 — DIVE:
 1. Load findings from round 1 with load-findings.
 2. Pick 3-5 most promising results.
-3. Use playwright_browser_navigate if page needs JavaScript.
-4. Use read_pdf if there are PDF papers.
-5. Identify what's still missing.
-6. Call save-findings with round=2.
+3. Use web-search_get-single-web-page-content for deep page extraction.
+4. Use playwright_browser_navigate if page needs JavaScript rendering.
+5. Use read_pdf if there are PDF papers.
+6. Identify what's still missing.
+7. Call save-findings with filename="round-2".
 
 ROUND 3 — ITERATE:
 1. Load previous findings.
 2. Generate 2-3 new search queries from gaps.
-3. Search again with duckduckgo_web_search.
-4. For scientific papers: arxiv_search or pubchem_search_compounds.
+3. Search again with web-search_full-web-search.
+4. For scientific papers: arxiv_search_papers or pubchem_search_compounds.
 5. Store key facts with memory_add_observations.
-6. Call save-findings with round=3.
+6. Call save-findings with filename="round-3".
 7. Assess convergence. If no new info → proceed to verify.
 
 ROUND 4 — VERIFY:
@@ -658,7 +603,7 @@ ROUND 4 — VERIFY:
 2. Each claim needs 2+ independent sources.
 3. Check dates — prefer 2025-2026.
 4. Flag contradictions explicitly.
-5. Call save-findings with round=4.
+5. Call save-findings with filename="round-4".
 
 ROUND 5 — FINALIZE:
 1. Load all previous findings.
@@ -681,47 +626,33 @@ SKILLS["doc-scout/SKILL.md"] = r'''---
 name: doc-scout
 description: Finds technical documentation, API references, library docs, and code examples.
 ---
-Available: duckduckgo, fetch, playwright, sequential-thinking.
+Available: web-search (multi-engine search + page extraction), playwright, sequential-thinking.
 
 Focus: library/framework API docs, config guides, code examples, release notes, migration guides.
 
 Process:
 1. Identify exact library+version
-2. Search official docs first
-3. Extract function signatures/params/examples
-4. Note version.
+2. Search official docs first using web-search_full-web-search
+3. Use web-search_get-single-web-page-content to extract documentation content
+4. Extract function signatures/params/examples
+5. Note version.
 
 Rules: prefer official docs over third-party, include version numbers, never invent APIs.
-'''
-
-SKILLS["docs-writer/SKILL.md"] = r'''---
-name: docs-writer
-description: Writes and maintains project documentation. README, API docs, guides, and changelogs.
----
-You are a technical writer. Create clear, comprehensive documentation.
-
-Available: duckduckgo, fetch, git, sequential-thinking.
-
-Process:
-1. Understand the code/feature by reading the source.
-2. Research examples and best practices online.
-3. Write documentation following project conventions.
-
-Rules: use clear language, include code examples, explain why not just how, add docstrings for public APIs.
 '''
 
 SKILLS["fact-checker/SKILL.md"] = r'''---
 name: fact-checker
 description: Verifies claims, finds primary sources, checks accuracy of information.
 ---
-Available: duckduckgo, fetch, playwright, sequential-thinking.
+Available: web-search (multi-engine search + page extraction), playwright, sequential-thinking.
 
 Protocol:
 1. Identify the claim
-2. Search in 2+ independent sources
-3. Prioritize: primary sources > official docs > reputable news > expert analysis
-4. Check dates, evaluate authority
-5. Determine: confirmed / likely true / unverifiable / likely false / debunked
+2. Search in 2+ independent sources using web-search_full-web-search
+3. Use web-search_get-single-web-page-content to read primary sources
+4. Prioritize: primary sources > official docs > reputable news > expert analysis
+5. Check dates, evaluate authority
+6. Determine: confirmed / likely true / unverifiable / likely false / debunked
 
 Rules: be conservative, always cite sources for both sides, distinguish errors from outdated info from opinion.
 '''
@@ -741,88 +672,19 @@ Rules:
 - Never invent file paths, URLs, or API endpoints.
 '''
 
-SKILLS["plugin-creator/SKILL.md"] = r'''---
-name: plugin-creator
-description: Creates opencode plugin files (.ts) and places them in the correct directory.
----
-## Qué hace esta skill
-
-Crea plugins para opencode y los guarda en `~/.config/opencode/plugins/`.
-
-## Formato de un plugin
-
-```typescript
-import { type Plugin, tool } from "@opencode-ai/plugin"
-
-export const MiPlugin: Plugin = async (ctx) => {
-  return {
-    tool: {
-      "mi-tool": tool({
-        description: "Descripción",
-        args: {
-          param: tool.schema.string().describe("Un parámetro"),
-        },
-        async execute(args, context) {
-          const dir = context.worktree || context.directory || "."
-          const result = await Bun.$`cd ${dir} && comando ${args.param}`.text()
-          return result || "Hecho"
-        },
-      }),
-    },
-  }
-}
-```
-
-## Dónde se guarda
-
-`~/.config/opencode/plugins/<nombre>.ts` — opencode lo descubre automáticamente.
-
-## Cómo habilitarlo para agentes
-
-```json
-{
-  "tools": { "mi-tool": false },
-  "agent": { "build": { "tools": { "mi-tool": true } } }
-}
-```
-
-## Verificación
-
-```bash
-ls ~/.config/opencode/plugins/mi-plugin.ts
-cat ~/.local/share/opencode/log/*.log | grep mi-plugin
-python3 -m json.tool ~/.config/opencode/opencode.json
-opencode mcp ls
-```
-'''
-
-SKILLS["project-research-code/SKILL.md"] = r'''---
-name: project-research-code
-description: Code project research: analyzes codebase AND searches internet. Correlates both. Saves report.
----
-Split into independent tasks and delegate with task.
-
-1. task({ agent: research-web, task: 'search for best practices on X' })
-2. task({ agent: read, task: 'explore project structure for Y' })
-3. Each task saves results with save-findings.
-4. Collect with load-findings.
-5. Correlate findings and compile report.
-
-Protocol: EXPLORE → RESEARCH → CORRELATE → REPORT.
-'''
-
 SKILLS["project-research-science/SKILL.md"] = r'''---
 name: project-research-science
 description: Science project research: finds papers, compounds, resources. No code analysis. Saves report.
 ---
-Available: arxiv, pubchem, pdf, duckduckgo, fetch, playwright, sequential-thinking, memory.
+Available: arxiv, pubchem, pdf, web-search, playwright, sequential-thinking, memory.
 
 Protocol:
 1. SCOPING (domain, terms)
 2. LITERATURE SEARCH (arxiv/pubchem)
-3. DEEP DETAILS (DOIs/CIDs)
-4. SAVE REPORT (./research/)
-5. RESPOND.
+3. WEB CONTEXT (web-search_full-web-search for supplementary info)
+4. DEEP DETAILS (DOIs/CIDs)
+5. SAVE REPORT (./research/)
+6. RESPOND.
 
 Rules: This is RESEARCH not code — do NOT use git/grep/code tools. Include DOIs and CIDs. Verify across 2+ sources.
 '''
@@ -884,42 +746,26 @@ Divide research into independent sub-tasks. Delegate each with task to save toke
 Rules: include DOIs and CIDs, verify across 2+ sources, never invent data.
 '''
 
-SKILLS["security-auditor/SKILL.md"] = r'''---
-name: security-auditor
-description: Performs security audits: injection flaws, auth issues, data exposure, dependency vulnerabilities.
----
-Available: duckduckgo, fetch, git, sequential-thinking.
-
-Focus on:
-- OWASP Top 10: injection, broken auth, XSS, insecure deserialization, etc.
-- Authentication and authorization flaws
-- Data exposure and privacy risks
-- Dependency vulnerabilities
-- Configuration security issues
-
-Rules: be conservative, flag both confirmed and potential issues, suggest specific fixes.
-'''
-
 SKILLS["system-tools/SKILL.md"] = r'''---
 name: system-tools
 description: Reference of CLI tools useful for AI agents, what they do, and how to install them.
 ---
 Reference of CLI tools useful for AI agents.
 
-## Búsqueda
+## Busqueda
 - rg (ripgrep): buscar texto en archivos
 - fd: buscar archivos por nombre
 - bat: ver archivos con syntax highlighting
 - jq: procesar JSON
-- comby: búsqueda estructural de código
+- comby: busqueda estructural de codigo
 
-## Visualización
-- gnuplot: gráficas PNG/SVG
-- ttyplot: gráficas en tiempo real
-- plotext: gráficas en terminal (Python)
-- rich: tablas/árboles con colores (Python)
+## Visualizacion
+- gnuplot: graficas PNG/SVG
+- ttyplot: graficas en tiempo real
+- plotext: graficas en terminal (Python)
+- rich: tablas/arboles con colores (Python)
 
-## Instalación
+## Instalacion
 Arch:  sudo pacman -S <tool>
 macOS: brew install <tool>
 Debian: sudo apt install <tool>
@@ -927,7 +773,7 @@ Python: pip install <tool>
 
 ## Plugins relacionados
 - bat: muestra archivos con syntax highlighting
-- chart: genera gráficas en terminal con plotext
+- chart: genera graficas en terminal con plotext
 '''
 
 SKILLS["test-writer/SKILL.md"] = r'''---
@@ -936,7 +782,7 @@ description: Writes unit tests, integration tests, and E2E tests. Covers edge ca
 ---
 You are a test specialist.
 
-Available: git, playwright, duckduckgo, fetch, sequential-thinking.
+Available: git, playwright, web-search, sequential-thinking.
 
 Process:
 1. Understand the function/module to test.
@@ -952,6 +798,210 @@ name: yolo
 description: YOLO mode. No prompts, no questions, direct execution.
 ---
 Act directly. Read files, make changes, run commands. Do not ask for permission or confirmation. Do not explain your plan. Only output final results and verification steps. Never invent facts.
+'''
+
+SKILLS["commit-message/SKILL.md"] = r'''---
+name: commit-message
+description: Generates clean, conventional commit messages from staged git diffs. Use when writing git commits.
+---
+# Commit Message Generator
+
+## Instructions
+
+1. Run `git diff --staged` to see all changes
+2. Analyze the changes and generate a commit message
+
+## Commit Format
+
+```
+<type>(<scope>): <short summary>
+
+<detailed description>
+
+<breaking changes if any>
+```
+
+## Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code restructuring without behavior change
+- `docs`: Documentation only
+- `test`: Adding or updating tests
+- `chore`: Build, CI, dependencies
+- `perf`: Performance improvement
+- `style`: Formatting, no logic change
+
+## Rules
+
+- Use present tense ("add feature" not "added feature")
+- Explain what and why, not how
+- Keep subject line under 72 characters
+- Reference issue numbers at the end (e.g., #123)
+- Separate subject from body with blank line
+
+## Examples
+
+```
+feat(auth): add JWT token refresh mechanism
+
+Implement automatic token refresh when access token expires.
+Uses refresh token stored in httpOnly cookie.
+
+Closes #456
+```
+
+```
+fix(api): handle null response from external service
+
+The weather API sometimes returns null for invalid locations.
+Added null check and fallback to default values.
+
+Fixes #789
+```
+'''
+
+SKILLS["systematic-debugging/SKILL.md"] = r'''---
+name: systematic-debugging
+description: Methodical problem-solving for bugs and errors. Use when debugging issues or investigating failures.
+---
+# Systematic Debugging
+
+## Process
+
+1. **Reproduce** — Create minimal steps to trigger the bug
+2. **Isolate** — Narrow down to the smallest possible scope
+3. **Hypothesize** — Form 2-3 possible causes
+4. **Test** — Verify each hypothesis with evidence
+5. **Fix** — Apply the minimal fix that addresses root cause
+6. **Verify** — Confirm the fix works and doesn't break other things
+
+## Rules
+
+- Never guess. Always verify with evidence.
+- Start from what you know, not what you think.
+- Change one thing at a time.
+- Document each step and finding.
+- Check the simplest explanation first.
+
+## Common Debugging Patterns
+
+### Code not executing
+- Check if the code path is actually reached (add log/print)
+- Verify imports and module loading
+- Check for syntax errors that prevent loading
+
+### Wrong output
+- Trace data flow from input to output
+- Check intermediate values at each step
+- Verify assumptions about data types and formats
+
+### Performance issues
+- Profile before optimizing
+- Check for N+1 queries, unnecessary loops, missing indexes
+- Measure actual vs expected complexity
+
+### Intermittent failures
+- Check for race conditions, shared state, timing issues
+- Look at logs for patterns (time of day, load, etc.)
+- Check external dependencies (APIs, databases, networks)
+
+## Output Format
+
+When debugging, always output:
+1. What you observed
+2. What you expected
+3. Steps to reproduce
+4. Hypotheses tested
+5. Root cause found
+6. Fix applied
+7. Verification results
+'''
+
+SKILLS["tdd/SKILL.md"] = r'''---
+name: tdd
+description: Test-driven development workflow. Write tests first, then implement. Use when building new features or fixing bugs.
+---
+# Test-Driven Development (TDD)
+
+## The Red-Green-Refactor Cycle
+
+```
+1. RED   — Write a failing test that defines desired behavior
+2. GREEN — Write minimal code to make the test pass
+3. REFACTOR — Clean up code while keeping tests green
+```
+
+## Process
+
+### Step 1: Understand Requirements
+- What should the code do?
+- What are the inputs and outputs?
+- What are the edge cases?
+
+### Step 2: Write Failing Tests (RED)
+- Start with the simplest test case
+- Test one behavior per test
+- Use descriptive test names
+- Run tests to confirm they fail
+
+### Step 3: Implement Minimal Code (GREEN)
+- Write just enough code to pass
+- Don't optimize yet
+- Don't handle edge cases yet
+- Run tests to confirm they pass
+
+### Step 4: Refactor (REFACTOR)
+- Improve code structure
+- Remove duplication
+- Add edge case handling
+- Run tests to confirm nothing broke
+
+## Rules
+
+- Never write production code without a failing test first
+- One test at a time
+- Commit after each green-refactor cycle
+- Tests are documentation — make them readable
+
+## Test Structure
+
+```python
+def test_<what>():
+    # Arrange — set up test data
+    # Act — call the function
+    # Assert — verify the result
+```
+
+## What to Test
+
+- Happy path (expected behavior)
+- Edge cases (boundaries, empty input, null)
+- Error cases (invalid input, exceptions)
+- Integration points (APIs, databases)
+
+## Anti-Patterns to Avoid
+
+- Testing implementation details (test behavior, not internals)
+- Writing tests after code (defeats the purpose)
+- Skipping the refactor step (technical debt accumulates)
+- Testing too much at once (keep tests small and focused)
+
+## When to Apply TDD
+
+- New features with clear requirements
+- Bug fixes (write test that reproduces bug first)
+- Refactoring (tests ensure behavior doesn't change)
+- Complex algorithms
+- API endpoints
+
+## Output
+
+For each feature, produce:
+1. Test file with failing tests
+2. Implementation file
+3. All tests passing
+4. Refactored code
 '''
 
 # ── opencode.jsonc (plantilla) ───────────────────────────────────────────────
@@ -992,7 +1042,7 @@ OPENCODE_JSONC = r'''{
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "vision": {
-          "name": "Visión",
+          "name": "Vision",
           "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": false },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
@@ -1020,91 +1070,96 @@ OPENCODE_JSONC = r'''{
       "mode": "primary", "description": "Planning and analysis. Read-only.", "temperature": 0.1,
       "prompt": "You are a senior tech lead for planning. Load the 'plan' skill for full protocol.",
       "permission": { "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "deny", "websearch": "deny", "lsp": "allow", "skill": { "plan": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": {}
+      "tools": { "context7_*": true }
     },
     "read": {
       "mode": "primary", "description": "Pure read-only mode.", "temperature": 0.1,
       "prompt": "You are a read-only assistant. Load the 'read' skill.",
-      "permission": { "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "deny", "external_directory": "allow", "todowrite": "deny", "webfetch": "deny", "websearch": "deny", "lsp": "allow", "skill": { "read": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": {}
+      "permission": { "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "deny", "external_directory": "allow", "todowrite": "deny", "webfetch": "deny", "websearch": "deny", "lsp": "allow", "skill": { "read": "allow", "plan": "allow", "code-reviewer": "allow", "doc-scout": "allow", "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
+      "tools": { "context7_*": true }
     },
     "yolo": {
       "mode": "primary", "description": "YOLO mode. No prompts, no questions, direct execution.", "temperature": 0.2,
       "prompt": "You are a YOLO mode agent, DO it!",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "yolo": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": {}
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "yolo": "allow", "code-reviewer": "allow", "coding": "allow", "deep-research": "allow", "doc-scout": "allow", "fact-checker": "allow", "plan": "allow", "project-research-science": "allow", "read": "allow", "refactoring": "allow", "scientific-computing": "allow", "scientific-research": "allow", "system-tools": "allow", "test-writer": "allow" }, "question": "allow", "doom_loop": "allow" },
+      "tools": { "context7_*": true }
     },
     "scientific-research": {
       "mode": "primary", "description": "Academic research: papers, chemical compounds, citations.", "temperature": 0.15,
       "prompt": "You are a scientific researcher. Load the 'scientific-research' skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "memory_*": "allow" },
-      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "memory_*": "allow" },
+      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
     "project-research-science": {
       "mode": "primary", "description": "Science project research.", "temperature": 0.15,
       "prompt": "You are a science project researcher. Load the 'project-research-science' skill.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow" },
-      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "chart": true, "save-findings": true, "load-findings": true }
+      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "web-search_*": true, "playwright_*": true, "memory_*": true, "context7_*": true, "chart": true, "save-findings": true, "load-findings": true }
     },
     "deep-research": {
       "mode": "primary", "description": "Deep iterative research: ALL tools, multi-round research loop.", "temperature": 0.1,
       "prompt": "You are a senior deep research analyst. Load the 'deep-research' skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "puppeteer_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
-      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
+      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
     "doc-scout": {
       "mode": "primary", "description": "Finds technical documentation, API references.", "temperature": 0.2,
       "prompt": "You are a technical documentation specialist. Load the 'doc-scout' skill.",
-      "permission": { "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "doc-scout": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "puppeteer_*": "allow", "playwright_*": "allow" },
-      "tools": { "playwright_*": true, "chart": true, "bat": true, "fetch_*": false, "duckduckgo_*": false }
+      "permission": { "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "doc-scout": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "playwright_*": "allow" },
+      "tools": { "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true }
     },
     "fact-checker": {
       "mode": "primary", "description": "Verifies claims, finds primary sources.", "temperature": 0.1,
       "prompt": "You are a fact-checker. Load the 'fact-checker' skill.",
       "permission": { "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "bat": true }
+      "tools": { "web-search_*": true, "playwright_*": true, "context7_*": true, "bat": true }
     },
     "coding": {
       "mode": "primary", "description": "Developer. Writes, debugs y refactoriza.", "temperature": 0.15,
       "prompt": "You are a Developer specialist. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "ruff": true, "comby-search": true, "comby-replace": true, "git_*": true, "verify-deps": true }
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "ruff": true, "comby-search": true, "comby-replace": true, "git_*": true, "web-search_*": true, "context7_*": true, "verify-deps": true }
     },
     "coding-web": {
       "mode": "primary", "description": "Web developer. Frontend, backend, APIs, y testing con Playwright.", "temperature": 0.15,
       "prompt": "You are a web development specialist. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "playwright_*": true, "comby-search": true, "comby-replace": true, "git_*": true, "fetch_*": false, "duckduckgo_*": false, "verify-deps": true }
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "playwright_*": true, "web-search_*": true, "context7_*": true, "comby-search": true, "comby-replace": true, "git_*": true, "verify-deps": true }
     },
     "research-web": {
       "mode": "primary", "description": "Web research specialist.", "temperature": 0.2,
-      "prompt": "You are a web research specialist. Use duckduckgo, fetch, and playwright to find and extract information from the web.",
+      "prompt": "You are a web research specialist. Use web-search (full-web-search, get-single-web-page-content) and playwright to find and extract information from the web.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "doc-scout": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "playwright_*": true, "chart": true, "research-save": true, "save-findings": true, "load-findings": true }
+      "tools": { "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
     "code-reviewer": {
       "mode": "primary", "temperature": 0.1, "description": "Reviews code for best practices. Read-only.",
       "prompt": "You are a code reviewer. Only analyze code, do not modify.",
       "permission": { "edit": "deny", "bash": "ask", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "code-reviewer": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "verify-deps": true }
+      "tools": { "git_*": true, "context7_*": true, "verify-deps": true }
     },
+
     "test-writer": {
       "mode": "primary", "temperature": 0.15, "description": "Writes unit tests, integration tests, and E2E tests.",
       "prompt": "You are a test specialist. Write thorough tests covering relevant scenarios.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "test-writer": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "playwright_*": true, "verify-deps": true }
+      "tools": { "git_*": true, "playwright_*": true, "context7_*": true, "verify-deps": true }
     },
     "build": {
       "mode": "primary", "temperature": 0.1, "description": "Handles project building and compilation tasks.",
       "prompt": "You are a build specialist. Execute build commands and manage project compilation.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "verify-deps": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "verify-deps": true }
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "verify-deps": true, "git_*": true, "arxiv_*": true, "pdf_*": true, "playwright_*": true, "memory_*": true, "pubchem_*": true, "web-search_*": true, "context7_*": true }
     },
     "refactoring": {
       "mode": "primary", "temperature": 0.15, "description": "Refactors code improving structure and readability.",
       "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "refactoring": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "verify-deps": true, "save-findings": true, "load-findings": true }
+      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "verify-deps": true, "save-findings": true, "load-findings": true }
+    },
+
+    "compaction": {
+      "model": "guzman-lopez/compactador"
     }
   },
 
@@ -1132,7 +1187,7 @@ OPENCODE_JSONC = r'''{
   "mcp": {
     "playwright": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium"{NO_SANDBOX}]
+      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium", "--executable-path", "{HOME}/.cache/ms-playwright/chromium-1224/chrome-linux64/chrome", "--no-sandbox"]
     },
     "sequential-thinking": {
       "type": "local", "enabled": true,
@@ -1142,17 +1197,18 @@ OPENCODE_JSONC = r'''{
       "type": "local", "enabled": true,
       "command": ["{BASE_DIR}/node_modules/.bin/mcp-server-memory"]
     },
-    "fetch": {
+    "context7": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/mcp-fetch-server"]
+      "command": ["npx", "-y", "@upstash/context7-mcp"]
     },
-    "duckduckgo": {
+    "web-search": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/duckduckgo-mcp-server"]
+      "command": ["node", "{BASE_DIR}/mcp-servers/web-search-mcp/dist/index.js"],
+      "env": { "BROWSER_HEADLESS": "true", "MAX_BROWSERS": "2", "DEFAULT_TIMEOUT": "8000" }
     },
     "arxiv": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/arxiv-mcp-server"]
+      "command": ["arxiv-mcp-server", "--storage-path", "{HOME}/.arxiv-mcp-server/papers"]
     },
     "pdf": {
       "type": "local", "enabled": true,
@@ -1166,9 +1222,10 @@ OPENCODE_JSONC = r'''{
       "type": "local", "enabled": true,
       "command": ["{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"]
     },
-    "filesystem": {
+    "sonarqube": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/mcp-server-filesystem"]
+      "command": ["{BASE_DIR}/node_modules/.bin/sonarqube-mcp"],
+      "environment": { "SONAR_HOST_URL": "http://localhost:9000", "SONAR_TOKEN": "{SONAR_TOKEN}" }
     }
   },
 
@@ -1176,25 +1233,34 @@ OPENCODE_JSONC = r'''{
     "ruff": "allow",
     "verify-deps": "allow",
     "verify-opencode": "allow",
+    "web-search_*": "allow",
+    "arxiv_*": "allow",
+    "git_*": "allow",
+    "pdf_*": "allow",
+    "playwright_*": "allow",
+    "memory_*": "allow",
+    "pubchem_*": "allow",
+    "context7_*": "allow",
     "skill": {
-      "build": "deny", "plan": "deny", "read": "deny", "research": "deny",
-      "yolo": "deny", "admin": "deny", "coding": "deny",
+      "build": "deny", "plan": "deny", "read": "deny",
+      "yolo": "deny", "coding": "deny",
       "scientific-research": "deny", "scientific-computing": "deny",
       "deep-research": "deny", "doc-scout": "deny", "fact-checker": "deny",
-      "project-research-code": "deny", "project-research-science": "deny",
-      "plugin-creator": "deny"
+      "project-research-science": "deny",
+      "code-reviewer": "deny", "refactoring": "deny", "test-writer": "deny",
+      "tdd": "deny", "commit-message": "deny", "systematic-debugging": "deny"
     }
   },
 
   "tools": {
-    "git_*": false, "arxiv_*": false, "pdf_*": false,
-    "puppeteer_*": false, "playwright_*": false,
-    "filesystem_*": false, "memory_*": false, "pubchem_*": false
+    "git_*": true, "arxiv_*": true, "pdf_*": true,
+    "playwright_*": true, "memory_*": true, "pubchem_*": true,
+    "web-search_*": true, "context7_*": true
   }
 }'''
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  MOTOR DE INSTALACIÓN                                                       ║
+# ║  MOTOR DE INSTALACION                                                       ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 class C:
@@ -1235,7 +1301,78 @@ def install_npm(target_dir):
             ok("npm install completado — MCP servers instalados")
             return True
         else:
-            err(f"npm install falló: {r.stderr[-300:]}")
+            err(f"npm install fallo: {r.stderr[-300:]}")
+            return False
+    except Exception as e:
+        err(f"Error: {e}")
+        return False
+
+
+def install_web_search_mcp(target_dir):
+    """Clona e instala web-search-mcp (TypeScript, multi-engine search)."""
+    step("WEB-SEARCH", "Instalando web-search-mcp (Bing/DuckDuckGo)...")
+    mcp_dir = target_dir / "mcp-servers" / "web-search-mcp"
+    if mcp_dir.exists() and (mcp_dir / "dist" / "index.js").exists():
+        ok("web-search-mcp ya instalado")
+        return True
+
+    try:
+        info("Clonando repositorio...")
+        r = subprocess.run(
+            ["git", "clone", "--depth", "1", "https://github.com/mrkrsl/web-search-mcp.git", str(mcp_dir)],
+            capture_output=True, text=True, timeout=120
+        )
+        if r.returncode != 0:
+            err(f"git clone fallo: {r.stderr[-200:]}")
+            return False
+
+        info("Instalando dependencias...")
+        r = subprocess.run(["npm", "install"], cwd=str(mcp_dir),
+                           capture_output=True, text=True, timeout=120)
+        if r.returncode != 0:
+            err(f"npm install fallo: {r.stderr[-200:]}")
+            return False
+
+        info("Instalando Playwright chromium...")
+        subprocess.run(["npx", "playwright", "install", "chromium"], cwd=str(mcp_dir),
+                       capture_output=True, text=True, timeout=300)
+
+        info("Compilando TypeScript...")
+        r = subprocess.run(["npm", "run", "build"], cwd=str(mcp_dir),
+                           capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            err(f"build fallo: {r.stderr[-200:]}")
+            return False
+
+        ok("web-search-mcp instalado correctamente")
+        return True
+    except Exception as e:
+        err(f"Error: {e}")
+        return False
+
+
+def install_arxiv_python():
+    """Instala arxiv-mcp-server via uv tool install (Python)."""
+    step("ARXIV", "Instalando arxiv-mcp-server (Python via uv)...")
+    try:
+        r = subprocess.run(["which", "uv"], capture_output=True, text=True, timeout=5)
+        if r.returncode != 0:
+            info("uv no encontrado, instalando...")
+            subprocess.run("curl -LsSf https://astral.sh/uv/install.sh | sh", shell=True, timeout=120)
+
+        r = subprocess.run(["arxiv-mcp-server", "--help"], capture_output=True, text=True, timeout=10)
+        if r.returncode == 0:
+            ok("arxiv-mcp-server ya instalado")
+            return True
+
+        info("Ejecutando uv tool install arxiv-mcp-server...")
+        r = subprocess.run(["uv", "tool", "install", "arxiv-mcp-server"],
+                           capture_output=True, text=True, timeout=120)
+        if r.returncode == 0:
+            ok("arxiv-mcp-server instalado correctamente")
+            return True
+        else:
+            err(f"uv tool install fallo: {r.stderr[-200:]}")
             return False
     except Exception as e:
         err(f"Error: {e}")
@@ -1301,7 +1438,7 @@ def install_system_deps():
     if missing:
         warn(f"Faltan: {', '.join(missing)}")
         for name in missing:
-            install_cmd = deps[name]["install"].get(OS_NAME, "Ver documentación oficial")
+            install_cmd = deps[name]["install"].get(OS_NAME, "Ver documentacion oficial")
             info(f"  Instalar {name}: {install_cmd}")
     else:
         ok("Todas las dependencias del sistema encontradas")
@@ -1338,7 +1475,6 @@ def install_python_deps():
 
     if missing:
         warn(f"Faltan: {', '.join(missing)}")
-        # Intentar instalar con pip si --install-python fue pasado
         for pkg in missing:
             info(f"  Instalar: pip install {pkg}  (o: uv pip install {pkg})")
     else:
@@ -1351,7 +1487,6 @@ def install_playwright():
     """Instala navegadores de Playwright."""
     step("PLAYWRIGHT", "Navegadores...")
 
-    # Verificar si ya existen
     cache = Path.home() / ".cache" / "ms-playwright"
     if IS_WINDOWS:
         cache = Path(os.environ.get("LOCALAPPDATA", "")) / "ms-playwright"
@@ -1372,18 +1507,18 @@ def install_playwright():
             ok("Chromium instalado via Playwright")
             return True
         else:
-            warn("No se pudo instalar Chromium automáticamente")
+            warn("No se pudo instalar Chromium automaticamente")
             info("  Instalar manualmente: npx playwright install chromium")
-            return True  # No crítico
+            return True  # No critico
     except Exception as e:
         warn(f"Error: {e}")
-        info("  Se instalará bajo demanda al usar opencode")
-        return True  # No crítico
+        info("  Se instalara bajo demanda al usar opencode")
+        return True  # No critico
 
 
 def verify_installation(target_dir):
-    """Verifica que todo esté instalado correctamente."""
-    step("VERIFICACIÓN", "Comprobando instalación...")
+    """Verifica que todo este instalado correctamente."""
+    step("VERIFICACION", "Comprobando instalacion...")
 
     checks = [
         ("opencode.jsonc", target_dir / "opencode.jsonc"),
@@ -1407,7 +1542,7 @@ def verify_installation(target_dir):
     bin_dir = target_dir / "node_modules" / ".bin"
     if bin_dir.exists():
         mcp_bins = [f for f in bin_dir.iterdir()
-                    if any(k in f.name for k in ["mcp", "playwright", "duckduck", "arxiv", "pdf-reader", "pubchem", "git-mcp"])]
+                    if any(k in f.name for k in ["mcp", "playwright", "arxiv", "pdf-reader", "pubchem", "git-mcp"])]
         ok(f"MCP servers: {len(mcp_bins)} instalados")
 
     # Contar plugins y skills
@@ -1429,7 +1564,7 @@ def main():
         epilog="""
 Ejemplos:
   python3 setup.py                              # Instala en directorio actual
-  python3 setup.py --target ~/opencode          # Instala en ruta específica
+  python3 setup.py --target ~/opencode          # Instala en ruta especifica
   python3 setup.py --api-key "sk-..."           # Pasa la API key
   OPENCODE_API_KEY="sk-..." python3 setup.py    # O por variable de entorno
         """)
@@ -1464,7 +1599,7 @@ Ejemplos:
             api_key = "__PRESERVE__"
             ok("API key ya configurada en opencode.jsonc existente")
         else:
-            warn("No se proporcionó API key")
+            warn("No se proporciono API key")
             api_key = input("  Ingresa tu API key (o Enter para omitir): ").strip() or "YOUR_API_KEY_HERE"
     if api_key != "__PRESERVE__":
         ok(f"API key configurada ({len(api_key)} chars)")
@@ -1473,8 +1608,7 @@ Ejemplos:
     step("3/7", "Generando opencode.jsonc...")
     base_dir = str(target)
     config = OPENCODE_JSONC.replace("{BASE_DIR}", base_dir)
-    no_sandbox = ', "--no-sandbox"' if IS_LINUX else ""
-    config = config.replace("{NO_SANDBOX}", no_sandbox)
+    config = config.replace("{HOME}", str(Path.home()))
     if api_key != "__PRESERVE__":
         config = config.replace("{API_KEY}", api_key)
     else:
@@ -1509,31 +1643,39 @@ Ejemplos:
     else:
         warn("Omitiendo npm install (--skip-npm)")
 
-    # 7. Dependencias del sistema
+    # 7. web-search-mcp (TypeScript, git clone + build)
+    if not args.skip_npm:
+        install_web_search_mcp(target)
+
+    # 8. arxiv-mcp-server (Python via uv)
+    if not args.skip_npm:
+        install_arxiv_python()
+
+    # 9. Dependencias del sistema
     if not args.skip_system:
         install_system_deps()
     else:
         warn("Omitiendo dependencias del sistema (--skip-system)")
 
-    # 8. Paquetes Python
+    # 10. Paquetes Python
     if not args.skip_python:
         install_python_deps()
     else:
         warn("Omitiendo paquetes Python (--skip-python)")
 
-    # 9. Playwright
+    # 11. Playwright
     if not args.skip_playwright:
         install_playwright()
     else:
         warn("Omitiendo Playwright (--skip-playwright)")
 
-    # 10. Verificación final
+    # 12. Verificacion final
     verify_installation(target)
 
     # Resumen
     print(f"""{C.GRN}{C.B}
   ╔══════════════════════════════════════════════════════════════╗
-  ║         ✓ Instalación completada                            ║
+  ║         ✓ Instalacion completada                            ║
   ╚══════════════════════════════════════════════════════════════╝{C.R}
   {C.CYN}Directorio:{C.R}  {target}
   {C.CYN}Config:{C.R}      {target}/opencode.jsonc

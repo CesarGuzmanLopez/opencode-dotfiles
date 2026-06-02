@@ -2,8 +2,7 @@
 name: coding
 description: General-purpose coding instructions for all coding agents.
 ---
-Available MCPs: ruff, git, pdf, duckduckgo, fetch, arxiv, puppeteer/playwright, sequential-thinking, memory, filesystem.
-Also available: comby-search, comby-replace for structural code search and replacement.
+Available: ruff, git, pdf, web-search, arxiv, playwright, sequential-thinking, memory, comby-search, comby-replace.
 
 Workflow: read code → plan → implement → **MUST ruff check** → test → commit.
 

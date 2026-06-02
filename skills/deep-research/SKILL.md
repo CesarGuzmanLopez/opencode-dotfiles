@@ -6,27 +6,28 @@ You MUST complete ALL 5 rounds. Call research-save in round 5. FAILURE TO SAVE =
 
 ROUND 1 — SCOUT:
 1. Call sequentialthinking to break question into 3-5 sub-topics.
-2. Search each sub-topic with duckduckgo_web_search.
-3. Use fetch tools to read top results.
+2. Search each sub-topic with web-search_full-web-search (multi-engine: Bing/DuckDuckGo).
+3. Use web-search_get-single-web-page-content to read detailed results.
 4. List what you found and what gaps remain.
-5. Call save-findings with round=1 to persist findings.
+5. Call save-findings with filename="round-1" to persist findings.
 6. DO NOT proceed without listing gaps.
 
 ROUND 2 — DIVE:
 1. Load findings from round 1 with load-findings.
 2. Pick 3-5 most promising results.
-3. Use playwright_browser_navigate if page needs JavaScript.
-4. Use read_pdf if there are PDF papers.
-5. Identify what's still missing.
-6. Call save-findings with round=2.
+3. Use web-search_get-single-web-page-content for deep page extraction.
+4. Use playwright_browser_navigate if page needs JavaScript rendering.
+5. Use read_pdf if there are PDF papers.
+6. Identify what's still missing.
+7. Call save-findings with filename="round-2".
 
 ROUND 3 — ITERATE:
 1. Load previous findings.
 2. Generate 2-3 new search queries from gaps.
-3. Search again with duckduckgo_web_search.
-4. For scientific papers: arxiv_search or pubchem_search_compounds.
+3. Search again with web-search_full-web-search.
+4. For scientific papers: arxiv_search_papers or pubchem_search_compounds.
 5. Store key facts with memory_add_observations.
-6. Call save-findings with round=3.
+6. Call save-findings with filename="round-3".
 7. Assess convergence. If no new info → proceed to verify.
 
 ROUND 4 — VERIFY:
@@ -34,7 +35,7 @@ ROUND 4 — VERIFY:
 2. Each claim needs 2+ independent sources.
 3. Check dates — prefer 2025-2026.
 4. Flag contradictions explicitly.
-5. Call save-findings with round=4.
+5. Call save-findings with filename="round-4".
 
 ROUND 5 — FINALIZE:
 1. Load all previous findings.

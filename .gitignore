@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 package-lock.json
+mcp-servers/
 
 # Ruff cache
 .ruff_cache/
@@ -22,3 +23,6 @@ secrets.json
 test.js
 comby_test.js
 __pycache__/
+
+# IDE
+.continue/
