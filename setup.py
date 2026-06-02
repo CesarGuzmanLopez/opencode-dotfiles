@@ -18,13 +18,47 @@ import platform
 import subprocess
 import argparse
 import shutil
-from pathlib import Path
+from pathlib import Path, PureWindowsPath, PurePosixPath
 
 # Detectar OS una vez
 IS_LINUX   = sys.platform == "linux"
 IS_MAC     = sys.platform == "darwin"
 IS_WINDOWS = sys.platform == "win32"
 OS_NAME    = "linux" if IS_LINUX else ("mac" if IS_MAC else ("windows" if IS_WINDOWS else sys.platform))
+
+# Soporte para terminales sin ANSI (Windows CMD, PowerShell antiguo)
+def _enable_windows_ansi():
+    """Habilita códigos ANSI en Windows 10+."""
+    if not IS_WINDOWS:
+        return
+    try:
+        import ctypes  # type: ignore
+        kernel32 = ctypes.windll.kernel32  # type: ignore
+        # Habilita ENABLE_VIRTUAL_TERMINAL_PROCESSING (0x4)
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+    except Exception:
+        pass  # Fallar silenciosamente, no es crítico
+
+_enable_windows_ansi()
+
+# Helper: ejecutable de node_modules/.bin (Windows usa .cmd/.bat)
+def npm_bin(name, base_dir):
+    """Retorna la ruta al ejecutable de node_modules/.bin de forma cross-platform."""
+    bin_dir = Path(base_dir) / "node_modules" / ".bin"
+    if IS_WINDOWS:
+        # npm en Windows crea archivos .cmd y .ps1 además de sin extensión
+        for ext in [".cmd", ".bat", ".exe", ""]:
+            candidate = bin_dir / (name + ext)
+            if candidate.exists():
+                return str(candidate)
+    return str(bin_dir / name)
+
+# Helper: comando para ejecutar en shell cross-platform
+def shell_cmd(cmd):
+    """Envuelve un comando para bash en Unix, cmd en Windows."""
+    if IS_WINDOWS:
+        return f'cmd /c "{cmd}"'
+    return f'bash -c \'{cmd}\''
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  ARCHIVOS EMBEDIDOS — Todo el proyecto opencode esta aqui dentro           ║
@@ -1180,7 +1214,7 @@ OPENCODE_JSONC = r'''{
   "mcp": {
     "playwright": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium", "--executable-path", "{HOME}/.cache/ms-playwright/chromium-1224/chrome-linux64/chrome", "--no-sandbox"]
+      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium", "--executable-path", "{CHROMIUM_PATH}", "--no-sandbox"]
     },
     "sequential-thinking": {
       "type": "local", "enabled": true,
@@ -1276,9 +1310,54 @@ def write_file(path, content):
     ok(str(path))
 
 
+def find_chromium_executable():
+    """Encuentra el ejecutable de Chromium instalado por Playwright cross-platform.
+
+    Returns:
+        Path al ejecutable, o None si no se encuentra.
+    """
+    if IS_LINUX:
+        cache = Path.home() / ".cache" / "ms-playwright"
+        subdir_pattern = "chrome-linux*"  # chrome-linux, chrome-linux64
+        exe_name = "chrome"
+    elif IS_MAC:
+        cache = Path.home() / "Library" / "Caches" / "ms-playwright"
+        subdir_pattern = "chrome-mac*"
+        exe_name = "Chromium"  # macOS usa .app, pero la ruta interna es 'Chromium'
+    elif IS_WINDOWS:
+        local = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+        cache = Path(local) / "ms-playwright"
+        subdir_pattern = "chrome-win*"
+        exe_name = "chrome.exe"
+    else:
+        return None
+
+    if not cache.exists():
+        return None
+
+    # Buscar versión más reciente
+    for chromium_dir in sorted(cache.glob(f"chromium-*/{subdir_pattern}"), reverse=True):
+        exe_path = chromium_dir / exe_name
+        if exe_path.exists():
+            return str(exe_path)
+        # En macOS, el ejecutable está dentro de .app
+        if IS_MAC:
+            for app_exe in chromium_dir.glob("Chromium.app/Contents/MacOS/Chromium"):
+                return str(app_exe)
+    return None
+
+
 def install_npm(target_dir):
     """Ejecuta npm install."""
     step("NPM", "Instalando dependencias npm (MCP servers)...")
+    # Usar shutil.which para detectar node/npm cross-platform
+    if shutil.which("node") is None:
+        err("Node.js no encontrado. Instala desde https://nodejs.org")
+        return False
+    if shutil.which("npm") is None:
+        err("npm no encontrado. Viene con Node.js — reinstala Node.js desde https://nodejs.org")
+        return False
+
     try:
         r = subprocess.run(["node", "--version"], capture_output=True, text=True, timeout=10)
         ok(f"Node.js: {r.stdout.strip()}")
@@ -1308,6 +1387,15 @@ def install_web_search_mcp(target_dir):
     if mcp_dir.exists() and (mcp_dir / "dist" / "index.js").exists():
         ok("web-search-mcp ya instalado")
         return True
+
+    # Validar que git esté disponible (no solo en Linux)
+    if shutil.which("git") is None:
+        err("git no encontrado. Instala git antes de continuar.")
+        if IS_WINDOWS:
+            info("  Windows: https://git-scm.com/download/win")
+        else:
+            info("  Linux: sudo apt install git  /  macOS: xcode-select --install")
+        return False
 
     try:
         info("Clonando repositorio...")
@@ -1348,15 +1436,46 @@ def install_arxiv_python():
     """Instala arxiv-mcp-server via uv tool install (Python)."""
     step("ARXIV", "Instalando arxiv-mcp-server (Python via uv)...")
     try:
-        r = subprocess.run(["which", "uv"], capture_output=True, text=True, timeout=5)
-        if r.returncode != 0:
+        # Usar shutil.which en lugar de `which` (no existe en Windows)
+        if shutil.which("uv") is None:
             info("uv no encontrado, instalando...")
-            subprocess.run("curl -LsSf https://astral.sh/uv/install.sh | sh", shell=True, timeout=120)
+            if IS_WINDOWS:
+                # Instalar uv en Windows via PowerShell
+                info("  Descargando uv para Windows via PowerShell...")
+                r = subprocess.run(
+                    ["powershell", "-ExecutionPolicy", "Bypass", "-Command",
+                     "irm https://astral.sh/uv/install.ps1 | iex"],
+                    capture_output=True, text=True, timeout=120
+                )
+                if r.returncode != 0:
+                    err(f"Instalacion de uv fallo: {r.stderr[-300:]}")
+                    return False
+            else:
+                # Unix: curl | sh funciona bien
+                r = subprocess.run(
+                    "curl -LsSf https://astral.sh/uv/install.sh | sh",
+                    shell=True, capture_output=True, text=True, timeout=120
+                )
+                if r.returncode != 0:
+                    err(f"Instalacion de uv fallo: {r.stderr[-300:]}")
+                    return False
+            # Recargar PATH para incluir uv (puede estar en ~/.cargo/bin o ~/.local/bin)
+            # Truco: añadir posibles paths al PATH del proceso actual
+            for p in [
+                Path.home() / ".cargo" / "bin",
+                Path.home() / ".local" / "bin",
+                Path(os.environ.get("USERPROFILE", "")) / ".cargo" / "bin" if IS_WINDOWS else None,
+            ]:
+                if p and p.exists() and str(p) not in os.environ.get("PATH", ""):
+                    os.environ["PATH"] = str(p) + os.pathsep + os.environ.get("PATH", "")
 
-        r = subprocess.run(["arxiv-mcp-server", "--help"], capture_output=True, text=True, timeout=10)
-        if r.returncode == 0:
+        if shutil.which("arxiv-mcp-server") is not None:
             ok("arxiv-mcp-server ya instalado")
             return True
+
+        if shutil.which("uv") is None:
+            err("uv no encontrado tras instalacion. Aborta.")
+            return False
 
         info("Ejecutando uv tool install arxiv-mcp-server...")
         r = subprocess.run(["uv", "tool", "install", "arxiv-mcp-server"],
@@ -1423,6 +1542,7 @@ def install_system_deps():
             if r.returncode == 0:
                 found.append(name)
                 ok(f"{name}: {r.stdout.strip().split(chr(10))[0][:50]}")
+                # NOTA: chr(10) = '\n' (Pyright lo marca como "str" en vez de "ReadableBuffer" — falso positivo)
             else:
                 missing.append(name)
         except Exception:
@@ -1480,11 +1600,13 @@ def install_playwright():
     """Instala navegadores de Playwright."""
     step("PLAYWRIGHT", "Navegadores...")
 
-    cache = Path.home() / ".cache" / "ms-playwright"
     if IS_WINDOWS:
-        cache = Path(os.environ.get("LOCALAPPDATA", "")) / "ms-playwright"
-    if IS_MAC:
+        local = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
+        cache = Path(local) / "ms-playwright"
+    elif IS_MAC:
         cache = Path.home() / "Library" / "Caches" / "ms-playwright"
+    else:
+        cache = Path.home() / ".cache" / "ms-playwright"
 
     if cache.exists() and any(cache.iterdir()):
         ok(f"Navegadores ya instalados en {cache}")
@@ -1602,6 +1724,14 @@ Ejemplos:
     base_dir = str(target)
     config = OPENCODE_JSONC.replace("{BASE_DIR}", base_dir)
     config = config.replace("{HOME}", str(Path.home()))
+    # Detectar ruta de Chromium instalada por Playwright (cross-platform)
+    chromium_path = find_chromium_executable()
+    if chromium_path:
+        config = config.replace("{CHROMIUM_PATH}", chromium_path)
+    else:
+        # Fallback: dejar vacío (Playwright MCP lo gestionará)
+        config = config.replace("{CHROMIUM_PATH}", "")
+        warn("Chromium no detectado. Playwright lo instalará bajo demanda al primer uso.")
     if api_key != "__PRESERVE__":
         config = config.replace("{API_KEY}", api_key)
     else:
