@@ -1,16 +1,16 @@
 import { type Plugin, tool } from "@opencode-ai/plugin"
 
 const MCP_MAP = {
-  "duckduckgo": "duckduckgo-mcp-server",
-  "arxiv": "@cyanheads/arxiv-mcp-server",
-  "git": "@cyanheads/git-mcp-server",
+  "context7": "@upstash/context7-mcp",
+  "web-search": "web-search-mcp",
+  "arxiv": "arxiv-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
+  "git": "@cyanheads/git-mcp-server",
   "pubchem": "@cyanheads/pubchem-mcp-server",
-  "puppeteer": "@modelcontextprotocol/server-puppeteer",
   "playwright": "@playwright/mcp",
   "sequential-thinking": "@modelcontextprotocol/server-sequential-thinking",
   "memory": "@modelcontextprotocol/server-memory",
-  "filesystem": "@modelcontextprotocol/server-filesystem",
+  "sonarqube": "sonarqube-api-mcp",
 }
 
 export const VerifyDepsPlugin: Plugin = async (ctx) => {
@@ -24,7 +24,7 @@ export const VerifyDepsPlugin: Plugin = async (ctx) => {
           cleanup: tool.schema.boolean().optional().default(false).describe("Generate JSON to disable non-functional MCPs"),
         },
         async execute(args, context) {
-          const check = async (name, cmd, required, hint) => {
+          const check = async (name: string, cmd: string, required: boolean, hint: string) => {
             const found = await Bun.$`bash -c '${cmd}' 2>/dev/null`.then(r => r.exitCode === 0).catch(() => false)
             return { name, required, found, hint }
           }
@@ -37,7 +37,7 @@ export const VerifyDepsPlugin: Plugin = async (ctx) => {
             results.push(await check("uv/uvx", "uvx --version", false, "curl -LsSf https://astral.sh/uv/install.sh | sh"))
             results.push(await check("Git", "git --version", true, "Install from https://git-scm.com"))
             results.push(await check("pdftoppm", "pdftoppm --version 2>&1 | head -1", false, "pacman -S poppler | brew install poppler | choco install poppler"))
-          results.push(await check("comby", "comby --version 2>&1", false, "yay -S comby-bin (Arch) / brew install comby (macOS) / https://github.com/comby-tools/comby/releases"))
+            results.push(await check("comby", "comby --version 2>&1", false, "yay -S comby-bin (Arch) / brew install comby (macOS) / https://github.com/comby-tools/comby/releases"))
           }
           if (args.category === "all" || args.category === "mcp") {
             for (const [name, pkg] of Object.entries(MCP_MAP)) {

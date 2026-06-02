@@ -37,7 +37,7 @@ Directorio de configuración personal para [OpenCode](https://opencode.ai) — a
 | `refactoring` | full | Refactorización con comby. |
 | `compaction` | — | Compactador interno (sin tools). |
 
-## Skills (17)
+## Skills (16)
 
 ### Desarrollo
 
@@ -57,8 +57,7 @@ Directorio de configuración personal para [OpenCode](https://opencode.ai) — a
 | Skill | Descripción | Para quién |
 |-------|-------------|------------|
 | `deep-research` | Research iterativo de 5 rondas. Scout → Dive → Iterate → Verify → Finalize. | deep-research, scientific-research |
-| `scientific-research` | Research académico: arXiv, PubMed, Crossref. Divide en sub-tasks. | scientific-research |
-| `project-research-science` | Research científico de proyectos. ArXiv, PubChem. Sin análisis de código. | project-research-science |
+| `scientific-research` | Research académico y de proyectos: arXiv, PubMed, Crossref, PubChem. Divide en sub-tasks. | scientific-research, deep-research |
 | `scientific-computing` | Cálculos científicos con Python: sympy, scipy, pandas. | scientific-computing |
 | `doc-scout` | Busca documentación técnica, APIs, librerías. | doc-scout, research-web |
 | `fact-checker` | Verifica claims con 2+ fuentes independientes. | fact-checker |
@@ -92,13 +91,12 @@ Directorio de configuración personal para [OpenCode](https://opencode.ai) — a
 
 | Agente | Skills permitidas |
 |--------|-------------------|
-| `yolo` | **TODAS (17)** |
+| `yolo` | **TODAS (16)** |
 | `coding` | coding, refactoring, test-writer, tdd, commit-message, systematic-debugging, system-tools |
 | `coding-web` | coding, refactoring, test-writer, tdd, commit-message, systematic-debugging, system-tools |
 | `build` | coding, refactoring, test-writer, tdd, commit-message, systematic-debugging, system-tools |
-| `scientific-research` | scientific-research, scientific-computing, deep-research, project-research-science, system-tools |
-| `deep-research` | scientific-research, scientific-computing, deep-research, project-research-science, system-tools |
-| `project-research-science` | project-research-science, system-tools |
+| `scientific-research` | scientific-research, scientific-computing, deep-research, system-tools |
+| `deep-research` | scientific-research, scientific-computing, deep-research, system-tools |
 | `research-web` | doc-scout, system-tools |
 | `doc-scout` | doc-scout, system-tools |
 | `fact-checker` | fact-checker, system-tools |
@@ -135,7 +133,6 @@ Directorio de configuración personal para [OpenCode](https://opencode.ai) — a
 | Par | Relación | Recomendación |
 |-----|----------|---------------|
 | `test-writer` vs `tdd` | Complementarios | **Mantener ambos** — test-writer escribe tests, tdd es la metodología |
-| `scientific-research` vs `project-research-science` | Solapamiento ~70% | **Candidate a fusionar** — scientific-research es más completo |
 | `coding` vs `refactoring` | Diferentes | **Mantener ambos** — coding es general, refactoring es específico |
 | `code-reviewer` vs `fact-checker` | Diferentes | **Mantener ambos** — uno revisa código, otro verifica claims |
 | `deep-research` vs `doc-scout` | Diferentes | **Mantener ambos** — deep-research es iterativo, doc-scout busca docs |
@@ -223,6 +220,7 @@ Archivo principal con:
 - 5 skills eliminadas (admin, docs-writer, plugin-creator, project-research-code, security-auditor)
 - 3 skills nuevas (commit-message, systematic-debugging, tdd)
 - Skills actualizadas para usar `web-search` en vez de `duckduckgo`/`fetch`
+- Fusionadas `scientific-research` + `project-research-science` en una sola skill
 
 ## License
 

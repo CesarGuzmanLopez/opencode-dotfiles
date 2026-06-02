@@ -29,7 +29,7 @@ export const RuffPlugin: Plugin = async (ctx) => {
   }
 }
 
-async test.js{
+async function detectRuff(dir) {
   for (const runner of [`poetry run ruff`, `uvx ruff`, `ruff`]) {
     try {
       const parts = runner.split(" ")

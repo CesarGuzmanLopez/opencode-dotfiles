@@ -38,6 +38,7 @@ PACKAGE_JSON = r'''{
   "dependencies": {
     "@cyanheads/git-mcp-server": "latest",
     "@cyanheads/pubchem-mcp-server": "latest",
+    "@modelcontextprotocol/server-brave-search": "^0.6.2",
     "@modelcontextprotocol/server-memory": "latest",
     "@modelcontextprotocol/server-sequential-thinking": "latest",
     "@opencode-ai/plugin": "1.15.10",
@@ -310,14 +311,16 @@ async function detectRuff(dir) {
 PLUGINS["verify-deps.ts"] = r'''import { type Plugin, tool } from "@opencode-ai/plugin"
 
 const MCP_MAP = {
+  "context7": "@upstash/context7-mcp",
   "web-search": "web-search-mcp",
   "arxiv": "arxiv-mcp-server",
-  "git": "@cyanheads/git-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
+  "git": "@cyanheads/git-mcp-server",
   "pubchem": "@cyanheads/pubchem-mcp-server",
   "playwright": "@playwright/mcp",
   "sequential-thinking": "@modelcontextprotocol/server-sequential-thinking",
   "memory": "@modelcontextprotocol/server-memory",
+  "sonarqube": "sonarqube-api-mcp",
 }
 
 export const VerifyDepsPlugin: Plugin = async (ctx) => {
@@ -672,21 +675,48 @@ Rules:
 - Never invent file paths, URLs, or API endpoints.
 '''
 
-SKILLS["project-research-science/SKILL.md"] = r'''---
-name: project-research-science
-description: Science project research: finds papers, compounds, resources. No code analysis. Saves report.
+SKILLS["scientific-research/SKILL.md"] = r'''---
+name: scientific-research
+description: Scientific research: papers, compounds, citations, resources. Uses arXiv, PubChem, Crossref, web-search. Saves report to file.
 ---
-Available: arxiv, pubchem, pdf, web-search, playwright, sequential-thinking, memory.
+# Scientific Research
 
-Protocol:
-1. SCOPING (domain, terms)
-2. LITERATURE SEARCH (arxiv/pubchem)
-3. WEB CONTEXT (web-search_full-web-search for supplementary info)
-4. DEEP DETAILS (DOIs/CIDs)
-5. SAVE REPORT (./research/)
-6. RESPOND.
+Divide research into independent sub-tasks. Delegate each with task to save tokens.
 
-Rules: This is RESEARCH not code — do NOT use git/grep/code tools. Include DOIs and CIDs. Verify across 2+ sources.
+## Protocol
+
+1. **SCOPING** — Define domain, key terms, research questions
+2. **LITERATURE SEARCH** — arXiv for papers, PubChem for compounds, Crossref for citations
+3. **WEB CONTEXT** — web-search_full-web-search for supplementary info and context
+4. **DEEP DETAILS** — Extract DOIs, CIDs, key findings, methodologies
+5. **VERIFY** — Cross-check across 2+ independent sources
+6. **SAVE REPORT** — Call research-save to persist final report to ./research/
+
+## Task Delegation
+
+For large research, delegate sub-tasks:
+- Literature: `task({ agent: research-web, task: 'search arXiv for X' })`
+- Compounds: `task({ agent: research-web, task: 'search PubChem for Y' })`
+- Web context: `task({ agent: research-web, task: 'find supplementary info on Z' })`
+
+Each sub-task MUST call save-findings to persist results.
+
+## Tools Available
+
+- arxiv: papers and preprints
+- pubchem: chemical compounds and data
+- web-search: supplementary information
+- pdf: read research papers
+- playwright: access web resources
+- memory: store key findings
+
+## Rules
+
+- This is RESEARCH not code — do NOT use git/grep/code tools
+- Include DOIs and CIDs wherever possible
+- Verify across 2+ independent sources
+- Never invent data or citations
+- Always save final report with research-save
 '''
 
 SKILLS["read/SKILL.md"] = r'''---
@@ -1081,25 +1111,25 @@ OPENCODE_JSONC = r'''{
     "yolo": {
       "mode": "primary", "description": "YOLO mode. No prompts, no questions, direct execution.", "temperature": 0.2,
       "prompt": "You are a YOLO mode agent, DO it!",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "yolo": "allow", "code-reviewer": "allow", "coding": "allow", "deep-research": "allow", "doc-scout": "allow", "fact-checker": "allow", "plan": "allow", "project-research-science": "allow", "read": "allow", "refactoring": "allow", "scientific-computing": "allow", "scientific-research": "allow", "system-tools": "allow", "test-writer": "allow" }, "question": "allow", "doom_loop": "allow" },
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "yolo": "allow", "code-reviewer": "allow", "coding": "allow", "deep-research": "allow", "doc-scout": "allow", "fact-checker": "allow", "plan": "allow", "scientific-research": "allow", "read": "allow", "refactoring": "allow", "scientific-computing": "allow", "system-tools": "allow", "test-writer": "allow" }, "question": "allow", "doom_loop": "allow" },
       "tools": { "context7_*": true }
     },
     "scientific-research": {
       "mode": "primary", "description": "Academic research: papers, chemical compounds, citations.", "temperature": 0.15,
       "prompt": "You are a scientific researcher. Load the 'scientific-research' skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "memory_*": "allow" },
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "memory_*": "allow" },
       "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
-    "project-research-science": {
-      "mode": "primary", "description": "Science project research.", "temperature": 0.15,
-      "prompt": "You are a science project researcher. Load the 'project-research-science' skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow" },
+    "scientific-research": {
+      "mode": "primary", "description": "Academic research: papers, chemical compounds, citations.", "temperature": 0.15,
+      "prompt": "You are a scientific researcher. Load the 'scientific-research' skill.",
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "memory_*": "allow" },
       "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "web-search_*": true, "playwright_*": true, "memory_*": true, "context7_*": true, "chart": true, "save-findings": true, "load-findings": true }
     },
     "deep-research": {
       "mode": "primary", "description": "Deep iterative research: ALL tools, multi-round research loop.", "temperature": 0.1,
       "prompt": "You are a senior deep research analyst. Load the 'deep-research' skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "project-research-science": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "scientific-research": "allow", "scientific-computing": "allow", "deep-research": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
       "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
     "doc-scout": {
@@ -1246,7 +1276,7 @@ OPENCODE_JSONC = r'''{
       "yolo": "deny", "coding": "deny",
       "scientific-research": "deny", "scientific-computing": "deny",
       "deep-research": "deny", "doc-scout": "deny", "fact-checker": "deny",
-      "project-research-science": "deny",
+      "scientific-research": "deny",
       "code-reviewer": "deny", "refactoring": "deny", "test-writer": "deny",
       "tdd": "deny", "commit-message": "deny", "systematic-debugging": "deny"
     }
