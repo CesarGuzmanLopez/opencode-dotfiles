@@ -857,13 +857,6 @@ Process:
 Rules: each test tests one thing, use descriptive test names, follow project test patterns.
 '''
 
-SKILLS["yolo/SKILL.md"] = r'''---
-name: yolo
-description: YOLO mode. No prompts, no questions, direct execution.
----
-Act directly. Read files, make changes, run commands. Do not ask for permission or confirmation. Do not explain your plan. Only output final results and verification steps. Never invent facts.
-'''
-
 SKILLS["commit-message/SKILL.md"] = r'''---
 name: commit-message
 description: Generates clean, conventional commit messages from staged git diffs. Use when writing git commits.
@@ -1142,16 +1135,10 @@ OPENCODE_JSONC = r'''{
       "permission": { "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "deny", "external_directory": "allow", "todowrite": "deny", "webfetch": "deny", "websearch": "deny", "lsp": "allow", "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
       "tools": { "context7_*": true }
     },
-    "yolo": {
-      "mode": "primary", "description": "YOLO mode. FULL ACCESS to all skills, tools, and MCPs.", "temperature": 0.2,
-      "prompt": "You are a YOLO mode agent with FULL ACCESS to everything. DO it!",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "yolo": "allow", "code-reviewer": "allow", "coding": "allow", "commit-message": "allow", "deep-research": "allow", "doc-scout": "allow", "fact-checker": "allow", "plan": "allow", "read": "allow", "refactoring": "allow", "scientific-computing": "allow", "scientific-research": "allow", "system-tools": "allow", "systematic-debugging": "allow", "tdd": "allow", "test-writer": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": { "arxiv_*": true, "bat": true, "chart": true, "comby-search": true, "comby-replace": true, "context7_*": true, "git_*": true, "load-findings": true, "memory_*": true, "pdf_*": true, "playwright_*": true, "pubchem_*": true, "research-save": true, "ruff": true, "save-findings": true, "sonarqube_*": true, "verify-deps": true, "verify-opencode": true, "web-search_*": true }
-    },
     "research": {
       "mode": "primary", "description": "All research: scientific, web, documentation, fact-checking. Creates comprehensive folders with PDFs, docs, and reports.", "temperature": 0.15,
       "prompt": "You are a research specialist. Load the 'deep-research' or 'scientific-research' skill based on the task. Create comprehensive research folders with PDFs, documentation, and detailed reports.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "deep-research": "allow", "scientific-research": "allow", "scientific-computing": "allow", "doc-scout": "allow", "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "puppeteer_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
+       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "deep-research": "allow", "scientific-research": "allow", "scientific-computing": "allow", "doc-scout": "allow", "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
       "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
     },
     "coding": {
@@ -1176,13 +1163,31 @@ OPENCODE_JSONC = r'''{
       "mode": "primary", "temperature": 0.1, "description": "Handles project building and compilation tasks.",
       "prompt": "You are a build specialist. Execute build commands and manage project compilation.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "verify-deps": true, "git_*": true, "arxiv_*": true, "pdf_*": true, "playwright_*": true, "memory_*": true, "pubchem_*": true, "web-search_*": true, "context7_*": true }
+      "tools": { "bash": true, "edit": true, "write": true, "read": true, "glob": true, "grep": true, "task": true, "skill": true, "verify-deps": true, "git_*": true, "pdf_*": true, "web-search_*": true, "context7_*": true }
     },
     "refactoring": {
       "mode": "primary", "temperature": 0.15, "description": "Refactors code improving structure and readability.",
       "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "refactoring": "allow" }, "question": "allow", "doom_loop": "ask" },
       "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "verify-deps": true, "save-findings": true, "load-findings": true }
+    },
+    "typescript-dev": {
+      "mode": "primary", "temperature": 0.15, "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
+      "prompt": "You are a TypeScript/JavaScript developer. Load the coding skill.",
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
+    },
+    "rust-dev": {
+      "mode": "primary", "temperature": 0.15, "description": "Rust developer. Cargo, crates, systems programming.",
+      "prompt": "You are a Rust developer. Load the coding skill.",
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
+    },
+    "cpp-dev": {
+      "mode": "primary", "temperature": 0.15, "description": "C/C++ developer. CMake, Make, systems programming.",
+      "prompt": "You are a C/C++ developer. Load the coding skill.",
+      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
+      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
     },
 
     "compaction": {
@@ -1208,6 +1213,14 @@ OPENCODE_JSONC = r'''{
           }
         }
       }
+    },
+    "cpp": {
+      "command": ["clangd"],
+      "extensions": [".cpp", ".cxx", ".cc", ".c", ".h", ".hpp", ".hxx"]
+    },
+    "rust": {
+      "command": ["rust-analyzer"],
+      "extensions": [".rs"]
     }
   },
 
@@ -1270,7 +1283,7 @@ OPENCODE_JSONC = r'''{
     "context7_*": "allow",
     "skill": {
       "build": "deny", "plan": "deny", "read": "deny",
-      "yolo": "deny", "coding": "deny",
+      "coding": "deny",
       "scientific-research": "deny", "scientific-computing": "deny",
       "deep-research": "deny", "doc-scout": "deny", "fact-checker": "deny",
       "scientific-research": "deny",
@@ -1526,6 +1539,22 @@ def install_system_deps():
                 "linux": "sudo pacman -S fd  # or: sudo apt install fd-find",
                 "mac": "brew install fd",
                 "windows": "choco install fd",
+            },
+        },
+        "clangd": {
+            "check": "clangd --version",
+            "install": {
+                "linux": "sudo pacman -S clang  # clangd included, or: sudo apt install clangd",
+                "mac": "brew install llvm",
+                "windows": "choco install llvm  # or from https://releases.llvm.org/",
+            },
+        },
+        "rust-analyzer": {
+            "check": "rust-analyzer --version",
+            "install": {
+                "linux": "rustup component add rust-analyzer  # or: sudo pacman -S rust-analyzer",
+                "mac": "rustup component add rust-analyzer",
+                "windows": "rustup component add rust-analyzer",
             },
         },
     }
