@@ -2026,9 +2026,33 @@ Ejemplos:
     else:
         warn("Omitiendo npm install (--skip-npm)")
 
-    # 7. web-search-mcp (TypeScript, git clone + build)
-    if not args.skip_npm:
-        install_web_search_mcp(target)
+    # 7. web-search ahora es duckduckgo-mcp (vía npm, ya instalado arriba)
+    info("web-search → duckduckgo-mcp (instalado via npm)")
+
+    # Reemplazar placeholders de tokens (avisar si faltan)
+    config_path = target / "opencode.jsonc"
+    config_text = config_path.read_text()
+    if "{SONAR_TOKEN}" in config_text:
+        sonar_token = os.environ.get("SONAR_TOKEN", "")
+        if sonar_token:
+            config_text = config_text.replace("{SONAR_TOKEN}", sonar_token)
+        else:
+            config_text = config_text.replace("{SONAR_TOKEN}", "TU_SONAR_TOKEN_AQUI")
+            warn("SONAR_TOKEN no configurado. Edita opencode.jsonc manualmente.")
+    if "{MEMOS_TOKEN}" in config_text:
+        memos_token = os.environ.get("MEMOS_TOKEN", "")
+        if memos_token:
+            config_text = config_text.replace("{MEMOS_TOKEN}", memos_token)
+        else:
+            config_text = config_text.replace("{MEMOS_TOKEN}", "TU_MEMOS_TOKEN_AQUI")
+            warn("MEMOS_TOKEN no configurado. Edita opencode.jsonc manualmente.")
+    config_path.write_text(config_text)
+
+    # Crear directorio para memory MCP
+    memory_dir = target / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    (memory_dir / ".gitkeep").touch()
+    ok("Directorio memory/ creado")
 
     # 8. arxiv-mcp-server (Python via uv)
     if not args.skip_npm:
