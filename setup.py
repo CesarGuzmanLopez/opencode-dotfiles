@@ -78,7 +78,6 @@ PACKAGE_JSON = r'''{
     "mcp-sequential-thinking": "^0.6.7",
     "mcp-server-memory": "^1.0.3",
     "@cyanheads/pubchem-mcp-server": "latest",
-    "sonarqube-api-mcp": "^0.2.0",
     "typescript-language-server": "^5.3.0"
   },
   "devDependencies": {
@@ -354,7 +353,6 @@ const MCP_MAP = {
   "playwright": "@playwright/mcp",
   "sequential-thinking": "mcp-sequential-thinking",
   "memory": "mcp-server-memory",
-  "sonarqube": "sonarqube-api-mcp",
 }
 
 export const VerifyDepsPlugin: Plugin = async (ctx) => {
@@ -1279,7 +1277,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "sonarqube_*": true, "git_*": true, "pdf_*": true
+        "git_*": true, "pdf_*": true
       }
     },
     "build": {
@@ -1302,7 +1300,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "sonarqube_*": true, "pdf_*": true
+        "git_*": true, "pdf_*": true
       }
     },
     "refactoring": {
@@ -1480,16 +1478,6 @@ OPENCODE_JSONC = r'''{
         "{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"
       ]
     },
-    "sonarqube": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/sonarqube-mcp"
-      ],
-      "env": {
-        "SONAR_HOST_URL": "http://localhost:9000",
-        "SONAR_TOKEN": "{SONAR_TOKEN}"
-      }
-    },
     "memos": {
       "type": "remote", "enabled": true,
       "url": "http://217.154.101.35:8443/mcp",
@@ -1508,7 +1496,7 @@ OPENCODE_JSONC = r'''{
     "git_*": "allow", "pdf_*": "allow",
     "playwright_*": "allow", "memory_*": "allow",
     "pubchem_*": "allow", "context7_*": "allow",
-    "sequential-thinking": "allow", "sonarqube": "allow",
+    "sequential-thinking": "allow",
     "memos_*": "allow",
     "skill": {
       "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
@@ -1525,7 +1513,7 @@ OPENCODE_JSONC = r'''{
     "git_*": true, "arxiv_*": true, "pdf_*": true,
     "playwright_*": true, "memory_*": true, "pubchem_*": true,
     "web-search_*": true, "context7_*": true,
-    "sequential-thinking": true, "sonarqube": true, "memos_*": true
+    "sequential-thinking": true, "memos_*": true
   }
 }
 }'''
@@ -2032,13 +2020,6 @@ Ejemplos:
     # Reemplazar placeholders de tokens (avisar si faltan)
     config_path = target / "opencode.jsonc"
     config_text = config_path.read_text()
-    if "{SONAR_TOKEN}" in config_text:
-        sonar_token = os.environ.get("SONAR_TOKEN", "")
-        if sonar_token:
-            config_text = config_text.replace("{SONAR_TOKEN}", sonar_token)
-        else:
-            config_text = config_text.replace("{SONAR_TOKEN}", "TU_SONAR_TOKEN_AQUI")
-            warn("SONAR_TOKEN no configurado. Edita opencode.jsonc manualmente.")
     if "{MEMOS_TOKEN}" in config_text:
         memos_token = os.environ.get("MEMOS_TOKEN", "")
         if memos_token:

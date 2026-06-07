@@ -212,7 +212,7 @@
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "sonarqube_*": true, "git_*": true, "pdf_*": true
+        "git_*": true, "pdf_*": true
       }
     },
     "build": {
@@ -235,7 +235,7 @@
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "sonarqube_*": true, "pdf_*": true
+        "git_*": true, "pdf_*": true
       }
     },
     "refactoring": {
@@ -413,12 +413,6 @@
         "{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"
       ]
     },
-    "sonarqube": {
-      "type": "local", "enabled": true,
-      "command": [
-        "/home/cesar/.config/opencode/bin/sonarqube-mcp-wrapper.sh"
-      ]
-    },
     "memos": {
       "type": "remote", "enabled": true,
       "url": "http://217.154.101.35:8443/mcp",
@@ -437,7 +431,7 @@
     "git_*": "allow", "pdf_*": "allow",
     "playwright_*": "allow", "memory_*": "allow",
     "pubchem_*": "allow", "context7_*": "allow",
-    "sequential-thinking": "allow", "sonarqube": "allow",
+    "sequential-thinking": "allow",
     "memos_*": "allow",
     "skill": {
       "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
@@ -454,6 +448,6 @@
     "git_*": true, "arxiv_*": true, "pdf_*": true,
     "playwright_*": true, "memory_*": true, "pubchem_*": true,
     "web-search_*": true, "context7_*": true,
-    "sequential-thinking": true, "sonarqube": true, "memos_*": true
+    "sequential-thinking": true, "memos_*": true
   }
 }
