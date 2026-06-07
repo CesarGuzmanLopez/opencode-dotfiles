@@ -416,12 +416,8 @@
     "sonarqube": {
       "type": "local", "enabled": true,
       "command": [
-        "{BASE_DIR}/node_modules/.bin/sonarqube-mcp"
-      ],
-      "env": {
-        "SONAR_HOST_URL": "http://localhost:9000",
-        "SONAR_TOKEN": "{SONAR_TOKEN}"
-      }
+        "/home/cesar/.config/opencode/bin/sonarqube-mcp-wrapper.sh"
+      ]
     },
     "memos": {
       "type": "remote", "enabled": true,
