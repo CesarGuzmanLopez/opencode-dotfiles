@@ -70,14 +70,14 @@ PACKAGE_JSON = r'''{
   "private": true,
   "type": "module",
   "dependencies": {
-    "@cyanheads/git-mcp-server": "latest",
-    "@cyanheads/pubchem-mcp-server": "latest",
-    "@modelcontextprotocol/server-brave-search": "^0.6.2",
-    "@modelcontextprotocol/server-memory": "latest",
-    "@modelcontextprotocol/server-sequential-thinking": "latest",
-    "@opencode-ai/plugin": "1.15.10",
+    "@opencode-ai/plugin": "1.16.2",
     "@playwright/mcp": "latest",
     "@sylphx/pdf-reader-mcp": "latest",
+    "git-mcp-server": "^1.0.0",
+    "mcp-duckduckgo": "^2.0.0",
+    "mcp-sequential-thinking": "^0.6.7",
+    "mcp-server-memory": "^1.0.3",
+    "@cyanheads/pubchem-mcp-server": "latest",
     "sonarqube-api-mcp": "^0.2.0",
     "typescript-language-server": "^5.3.0"
   },
@@ -1069,7 +1069,9 @@ OPENCODE_JSONC = r'''{
   "$schema": "https://opencode.ai/config.json",
 
   "default_agent": "plan",
+  "autoupdate": "notify",
   "plugin": [],
+
   "provider": {
     "guzman-lopez": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1079,43 +1081,64 @@ OPENCODE_JSONC = r'''{
         "output": ["text"]
       },
       "options": {
-        "baseURL": "https://chat.guzman-lopez.com/v1",
+        "baseURL": "https://llm.guzman-lopez.com/v1",
         "apiKey": "{API_KEY}"
       },
       "models": {
         "pensamiento-profundo-caro": {
           "name": "Pensamiento Profundo",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": true },
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "tareas-avanzadas": {
           "name": "Tareas Avanzadas",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": true },
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "normal": {
           "name": "Normal",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": true },
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "vision": {
-          "name": "Vision",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": false },
+          "name": "Visión",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": false
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "normal-gratis": {
           "name": "Normal Gratis",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": true },
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "flash": {
           "name": "Flash",
-          "capabilities": { "tools": true, "vision": true, "streaming": true, "function_calling": true, "parallel_tool_calls": false },
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": false
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "compactador": {
           "name": "Compactador",
-          "capabilities": { "tools": false, "vision": true, "streaming": true, "function_calling": false, "parallel_tool_calls": false },
+          "capabilities": {
+            "tools": false, "vision": true, "streaming": true,
+            "function_calling": false, "parallel_tool_calls": false
+          },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         }
       }
@@ -1124,72 +1147,236 @@ OPENCODE_JSONC = r'''{
 
   "agent": {
     "plan": {
-      "mode": "primary", "description": "Planning, analysis, and documentation research. Read-only.", "temperature": 0.1,
-      "prompt": "You are a senior tech lead for planning and documentation research. Load the 'plan' skill for full protocol.",
-      "permission": { "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "plan": "allow", "read": "allow", "doc-scout": "allow", "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": { "context7_*": true, "web-search_*": true }
+      "mode": "primary",
+      "description": "Planning, analysis, and documentation research. Read-only.",
+      "temperature": 0.1,
+      "prompt": "You are a senior tech lead for planning and documentation research.",
+      "permission": {
+        "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "plan": "allow", "read": "allow", "doc-scout": "allow",
+          "fact-checker": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true, "context7_*": true, "web-search_*": true,
+        "arxiv_*": true, "pdf_*": true
+      }
     },
     "read": {
-      "mode": "primary", "description": "Pure read-only mode. Minimal access.", "temperature": 0.1,
-      "prompt": "You are a read-only assistant. Load the 'read' skill.",
-      "permission": { "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "deny", "external_directory": "allow", "todowrite": "deny", "webfetch": "deny", "websearch": "deny", "lsp": "allow", "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "allow" },
-      "tools": { "context7_*": true }
+      "mode": "primary",
+      "description": "Pure read-only mode. Minimal access.",
+      "temperature": 0.1,
+      "prompt": "You are a read-only assistant.",
+      "permission": {
+        "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "deny",
+        "external_directory": "allow", "todowrite": "deny",
+        "webfetch": "deny", "websearch": "deny", "lsp": "allow",
+        "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "pdf_*": true, "arxiv_*": true, "web-search_*": true, "context7_*": true
+      }
     },
     "research": {
-      "mode": "primary", "description": "All research: scientific, web, documentation, fact-checking. Creates comprehensive folders with PDFs, docs, and reports.", "temperature": 0.15,
-      "prompt": "You are a research specialist. Load the 'deep-research' or 'scientific-research' skill based on the task. Create comprehensive research folders with PDFs, documentation, and detailed reports.",
-       "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "deep-research": "allow", "scientific-research": "allow", "scientific-computing": "allow", "doc-scout": "allow", "fact-checker": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask", "arxiv_*": "allow", "pubchem_*": "allow", "pdf_*": "allow", "playwright_*": "allow", "memory_*": "allow" },
-      "tools": { "arxiv_*": true, "pubchem_*": true, "pdf_*": true, "memory_*": true, "playwright_*": true, "web-search_*": true, "context7_*": true, "chart": true, "bat": true, "research-save": true, "save-findings": true, "load-findings": true }
+      "mode": "primary",
+      "description": "All research: scientific, web, documentation, fact-checking.",
+      "temperature": 0.15,
+      "prompt": "You are a research specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "deep-research": "allow", "scientific-research": "allow",
+          "scientific-computing": "allow", "doc-scout": "allow",
+          "fact-checker": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true,
+        "arxiv_*": true, "pdf_*": true, "web-search_*": true,
+        "context7_*": true, "pubchem_*": true
+      }
     },
     "coding": {
-      "mode": "primary", "description": "Developer. Writes, debugs y refactoriza.", "temperature": 0.15,
-      "prompt": "You are a Developer specialist. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "ruff": true, "comby-search": true, "comby-replace": true, "git_*": true, "web-search_*": true, "context7_*": true, "verify-deps": true }
+      "mode": "primary",
+      "description": "Developer. Writes, debugs y refactoriza.",
+      "temperature": 0.15,
+      "prompt": "You are a Developer specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "web-search_*": true, "context7_*": true, "pdf_*": true
+      }
     },
     "coding-web": {
-      "mode": "primary", "description": "Web developer. Frontend, backend, APIs, y testing con Playwright.", "temperature": 0.15,
-      "prompt": "You are a web development specialist. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "playwright_*": true, "web-search_*": true, "context7_*": true, "comby-search": true, "comby-replace": true, "git_*": true, "verify-deps": true }
+      "mode": "primary",
+      "description": "Web developer. Frontend, backend, APIs.",
+      "temperature": 0.15,
+      "prompt": "You are a web development specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "playwright_*": true, "web-search_*": true,
+        "context7_*": true, "pdf_*": true
+      }
     },
     "code-quality": {
-      "mode": "primary", "description": "Code review, testing, and refactoring. Improves code quality.", "temperature": 0.15,
-      "prompt": "You are a code quality specialist. Review code, write tests, and refactor for better quality.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "code-reviewer": "allow", "test-writer": "allow", "tdd": "allow", "refactoring": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "playwright_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "verify-deps": true, "save-findings": true, "load-findings": true }
+      "mode": "primary",
+      "description": "Code review, testing, and refactoring.",
+      "temperature": 0.15,
+      "prompt": "You are a code quality specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "code-reviewer": "allow", "test-writer": "allow",
+          "tdd": "allow", "refactoring": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "sonarqube_*": true, "git_*": true, "pdf_*": true
+      }
     },
     "build": {
-      "mode": "primary", "temperature": 0.1, "description": "Handles project building and compilation tasks.",
-      "prompt": "You are a build specialist. Execute build commands and manage project compilation.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "systematic-debugging": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "bash": true, "edit": true, "write": true, "read": true, "glob": true, "grep": true, "task": true, "skill": true, "verify-deps": true, "git_*": true, "pdf_*": true, "web-search_*": true, "context7_*": true }
+      "mode": "primary",
+      "temperature": 0.1,
+      "description": "Handles project building and compilation tasks.",
+      "prompt": "You are a build specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "sonarqube_*": true, "pdf_*": true
+      }
     },
     "refactoring": {
-      "mode": "primary", "temperature": 0.15, "description": "Refactors code improving structure and readability.",
+      "mode": "primary", "temperature": 0.15,
+      "description": "Refactors code improving structure and readability.",
       "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "system-tools": "allow", "refactoring": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "verify-deps": true, "save-findings": true, "load-findings": true }
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "system-tools": "allow", "refactoring": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "pdf_*": true
+      }
     },
     "typescript-dev": {
-      "mode": "primary", "temperature": 0.15, "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
+      "mode": "primary", "temperature": 0.15,
+      "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
       "prompt": "You are a TypeScript/JavaScript developer. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+      }
     },
     "rust-dev": {
-      "mode": "primary", "temperature": 0.15, "description": "Rust developer. Cargo, crates, systems programming.",
+      "mode": "primary", "temperature": 0.15,
+      "description": "Rust developer. Cargo, crates, systems programming.",
       "prompt": "You are a Rust developer. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+      }
     },
     "cpp-dev": {
-      "mode": "primary", "temperature": 0.15, "description": "C/C++ developer. CMake, Make, systems programming.",
+      "mode": "primary", "temperature": 0.15,
+      "description": "C/C++ developer. CMake, Make, systems programming.",
       "prompt": "You are a C/C++ developer. Load the coding skill.",
-      "permission": { "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow", "grep": "allow", "list": "allow", "task": "allow", "external_directory": "allow", "todowrite": "allow", "webfetch": "allow", "websearch": "allow", "lsp": "allow", "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" }, "question": "allow", "doom_loop": "ask" },
-      "tools": { "git_*": true, "comby-search": true, "comby-replace": true, "context7_*": true, "web-search_*": true, "verify-deps": true }
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+      }
     },
-
     "compaction": {
       "model": "guzman-lopez/compactador"
     }
@@ -1197,7 +1384,10 @@ OPENCODE_JSONC = r'''{
 
   "lsp": {
     "typescript": {
-      "command": ["{BASE_DIR}/node_modules/.bin/typescript-language-server", "--stdio"],
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/typescript-language-server",
+        "--stdio"
+      ],
       "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]
     },
     "python": {
@@ -1227,15 +1417,28 @@ OPENCODE_JSONC = r'''{
   "mcp": {
     "playwright": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/playwright-mcp", "--browser", "chromium", "--executable-path", "{CHROMIUM_PATH}", "--no-sandbox"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/playwright-mcp",
+        "--browser", "chromium",
+        "--executable-path",
+        "{CHROMIUM_PATH}",
+        "--no-sandbox"
+      ]
     },
     "sequential-thinking": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/mcp-server-sequential-thinking"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/mcp-server-sequential-thinking"
+      ]
     },
     "memory": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/mcp-server-memory"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/mcp-server-memory"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "{BASE_DIR}/memory/memory.json"
+      }
     },
     "context7": {
       "type": "local", "enabled": true,
@@ -1243,29 +1446,56 @@ OPENCODE_JSONC = r'''{
     },
     "web-search": {
       "type": "local", "enabled": true,
-      "command": ["node", "{BASE_DIR}/mcp-servers/web-search-mcp/dist/index.js"],
-      "env": { "BROWSER_HEADLESS": "true", "MAX_BROWSERS": "2", "DEFAULT_TIMEOUT": "8000" }
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/duckduckgo-mcp"
+      ],
+      "env": {
+        "BROWSER_HEADLESS": "true",
+        "MAX_BROWSERS": "2",
+        "DEFAULT_TIMEOUT": "8000"
+      }
     },
     "arxiv": {
       "type": "local", "enabled": true,
-      "command": ["arxiv-mcp-server", "--storage-path", "{HOME}/.arxiv-mcp-server/papers"]
+      "command": [
+        "arxiv-mcp-server",
+        "--storage-path", "{HOME}/.arxiv-mcp-server/papers"
+      ]
     },
     "pdf": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/pdf-reader-mcp"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/pdf-reader-mcp"
+      ]
     },
     "git": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/git-mcp-server"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/git-mcp-server"
+      ]
     },
     "pubchem": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"
+      ]
     },
     "sonarqube": {
       "type": "local", "enabled": true,
-      "command": ["{BASE_DIR}/node_modules/.bin/sonarqube-mcp"],
-      "environment": { "SONAR_HOST_URL": "http://localhost:9000", "SONAR_TOKEN": "{SONAR_TOKEN}" }
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/sonarqube-mcp"
+      ],
+      "env": {
+        "SONAR_HOST_URL": "http://localhost:9000",
+        "SONAR_TOKEN": "{SONAR_TOKEN}"
+      }
+    },
+    "memos": {
+      "type": "remote", "enabled": true,
+      "url": "http://217.154.101.35:8443/mcp",
+      "headers": {
+        "Authorization": "Bearer {MEMOS_TOKEN}"
+      }
     }
   },
 
@@ -1275,28 +1505,29 @@ OPENCODE_JSONC = r'''{
     "verify-opencode": "allow",
     "web-search_*": "allow",
     "arxiv_*": "allow",
-    "git_*": "allow",
-    "pdf_*": "allow",
-    "playwright_*": "allow",
-    "memory_*": "allow",
-    "pubchem_*": "allow",
-    "context7_*": "allow",
+    "git_*": "allow", "pdf_*": "allow",
+    "playwright_*": "allow", "memory_*": "allow",
+    "pubchem_*": "allow", "context7_*": "allow",
+    "sequential-thinking": "allow", "sonarqube": "allow",
+    "memos_*": "allow",
     "skill": {
-      "build": "deny", "plan": "deny", "read": "deny",
-      "coding": "deny",
-      "scientific-research": "deny", "scientific-computing": "deny",
-      "deep-research": "deny", "doc-scout": "deny", "fact-checker": "deny",
-      "scientific-research": "deny",
-      "code-reviewer": "deny", "refactoring": "deny", "test-writer": "deny",
-      "tdd": "deny", "commit-message": "deny", "systematic-debugging": "deny"
+      "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
+      "coding": "deny", "scientific-research": "deny",
+      "scientific-computing": "deny", "deep-research": "deny",
+      "doc-scout": "deny", "fact-checker": "deny",
+      "code-reviewer": "deny", "refactoring": "deny",
+      "test-writer": "deny", "tdd": "deny", "commit-message": "deny",
+      "systematic-debugging": "deny"
     }
   },
 
   "tools": {
     "git_*": true, "arxiv_*": true, "pdf_*": true,
     "playwright_*": true, "memory_*": true, "pubchem_*": true,
-    "web-search_*": true, "context7_*": true
+    "web-search_*": true, "context7_*": true,
+    "sequential-thinking": true, "sonarqube": true, "memos_*": true
   }
+}
 }'''
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
