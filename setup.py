@@ -346,14 +346,14 @@ PLUGINS["verify-deps.ts"] = r'''import { type Plugin, tool } from "@opencode-ai/
 
 const MCP_MAP = {
   "context7": "@upstash/context7-mcp",
-  "web-search": "web-search-mcp",
+  "web-search": "mcp-duckduckgo",
   "arxiv": "arxiv-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
-  "git": "@cyanheads/git-mcp-server",
+  "git": "git-mcp-server",
   "pubchem": "@cyanheads/pubchem-mcp-server",
   "playwright": "@playwright/mcp",
-  "sequential-thinking": "@modelcontextprotocol/server-sequential-thinking",
-  "memory": "@modelcontextprotocol/server-memory",
+  "sequential-thinking": "mcp-sequential-thinking",
+  "memory": "mcp-server-memory",
   "sonarqube": "sonarqube-api-mcp",
 }
 
