@@ -1,0 +1,1 @@
+Memory file path: /home/cesar/.config/opencode/node_modules/mcp-server-memory/dist/memory.json

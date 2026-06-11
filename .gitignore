@@ -12,6 +12,9 @@ Thumbs.db
 .vscode/
 *.bak
 
+# Wrapper scripts con tokens (NUNCA commitear)
+bin/
+
 # API keys — NUNCA commitear
 opencode.jsonc
 .env
