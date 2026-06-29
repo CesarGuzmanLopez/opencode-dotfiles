@@ -1192,7 +1192,11 @@ OPENCODE_JSONC = r'''{
         "memos_*": true,
         "sequential-thinking": true,
         "memory_*": true, "context7_*": true, "web-search_*": true,
-        "arxiv_*": true, "pdf_*": true
+        "arxiv_search_papers": true, "arxiv_get_abstract": true,
+        "arxiv_download_paper": true, "arxiv_read_paper": true,
+        "arxiv_list_papers": true, "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
+        "pdf_*": true
       }
     },
     "read": {
@@ -1211,7 +1215,12 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "pdf_*": true, "arxiv_*": true, "web-search_*": true, "context7_*": true
+        "pdf_*": true,
+        "arxiv_search_papers": true, "arxiv_get_abstract": true,
+        "arxiv_download_paper": true, "arxiv_read_paper": true,
+        "arxiv_list_papers": true, "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
+        "web-search_*": true, "context7_*": true
       }
     },
     "research": {
@@ -1235,7 +1244,11 @@ OPENCODE_JSONC = r'''{
         "memos_*": true,
         "sequential-thinking": true,
         "memory_*": true,
-        "arxiv_*": true, "pdf_*": true, "web-search_*": true,
+        "arxiv_search_papers": true, "arxiv_get_abstract": true,
+        "arxiv_download_paper": true, "arxiv_read_paper": true,
+        "arxiv_list_papers": true, "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
+        "pdf_*": true, "web-search_*": true,
         "context7_*": true, "pubchem_*": true
       }
     },
@@ -1282,7 +1295,16 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "playwright_*": true, "web-search_*": true,
+        "browser_navigate": true, "browser_click": true,
+        "browser_type": true, "browser_snapshot": true,
+        "browser_take_screenshot": true, "browser_evaluate": true,
+        "browser_wait_for": true, "browser_tabs": true,
+        "browser_fill_form": true, "browser_hover": true,
+        "browser_select_option": true, "browser_close": true,
+        "browser_file_upload": true, "browser_resize": true,
+        "browser_run_code_unsafe": true, "browser_network_request": true,
+        "browser_handle_dialog": true, "browser_press_key": true,
+        "web-search_*": true,
         "context7_*": true, "pdf_*": true
       }
     },
@@ -1305,7 +1327,13 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "sonarqube_*": true,
+        "sonarqube_search_sonar_issues": true,
+        "sonarqube_get_sonar_issue_context": true,
+        "sonarqube_get_sonar_fix_plan": true,
+        "sonarqube_get_quality_gate_status": true,
+        "sonarqube_get_rule_details": true,
+        "sonarqube_get_component_measures": true,
+        "sonarqube_search_sonar_projects": true,
         "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
       }
     },
@@ -1329,7 +1357,13 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "sonarqube_*": true,
+        "sonarqube_search_sonar_issues": true,
+        "sonarqube_get_sonar_issue_context": true,
+        "sonarqube_get_sonar_fix_plan": true,
+        "sonarqube_get_quality_gate_status": true,
+        "sonarqube_get_rule_details": true,
+        "sonarqube_get_component_measures": true,
+        "sonarqube_search_sonar_projects": true,
         "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
       }
     },
@@ -1522,12 +1556,30 @@ OPENCODE_JSONC = r'''{
     "verify-deps": "allow",
     "verify-opencode": "allow",
     "web-search_*": "allow",
-    "arxiv_*": "allow",
+    "arxiv_search_papers": "allow", "arxiv_get_abstract": "allow",
+    "arxiv_download_paper": "allow", "arxiv_read_paper": "allow",
+    "arxiv_list_papers": "allow", "arxiv_semantic_search": "allow",
+    "arxiv_watch_topic": "allow", "arxiv_check_alerts": "allow",
     "git_status": "allow", "git_add": "allow", "git_commit": "allow", "git_diff": "allow", "git_log": "allow", "git_push": "allow", "git_pull": "allow", "git_checkout": "allow", "git_branch": "allow", "git_show": "allow", "git_merge": "allow", "git_fetch": "allow", "git_reset": "allow", "git_stash": "allow", "pdf_*": "allow",
-    "playwright_*": "allow", "memory_*": "allow",
+    "browser_navigate": "allow", "browser_click": "allow",
+    "browser_type": "allow", "browser_snapshot": "allow",
+    "browser_take_screenshot": "allow", "browser_evaluate": "allow",
+    "browser_wait_for": "allow", "browser_tabs": "allow",
+    "browser_fill_form": "allow", "browser_hover": "allow",
+    "browser_select_option": "allow", "browser_close": "allow",
+    "browser_file_upload": "allow", "browser_resize": "allow",
+    "browser_run_code_unsafe": "allow", "browser_network_request": "allow",
+    "browser_handle_dialog": "allow", "browser_press_key": "allow",
+    "memory_*": "allow",
     "pubchem_*": "allow", "context7_*": "allow",
     "sequential-thinking": "allow",
-    "sonarqube": "allow",
+    "sonarqube_search_sonar_issues": "allow",
+    "sonarqube_get_sonar_issue_context": "allow",
+    "sonarqube_get_sonar_fix_plan": "allow",
+    "sonarqube_get_quality_gate_status": "allow",
+    "sonarqube_get_rule_details": "allow",
+    "sonarqube_get_component_measures": "allow",
+    "sonarqube_search_sonar_projects": "allow",
     "memos_*": "allow",
     "skill": {
       "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
@@ -1542,9 +1594,24 @@ OPENCODE_JSONC = r'''{
 
   "tools": {
     "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true,
-    "playwright_*": true, "memory_*": true,
+    "browser_navigate": true, "browser_click": true,
+    "browser_type": true, "browser_snapshot": true,
+    "browser_take_screenshot": true, "browser_evaluate": true,
+    "browser_wait_for": true, "browser_tabs": true,
+    "browser_fill_form": true, "browser_hover": true,
+    "browser_select_option": true, "browser_close": true,
+    "browser_file_upload": true, "browser_resize": true,
+    "browser_run_code_unsafe": true, "browser_network_request": true,
+    "browser_handle_dialog": true, "browser_press_key": true,
+    "memory_*": true,
     "web-search_*": true, "context7_*": true,
-    "sonarqube": true,
+    "sonarqube_search_sonar_issues": true,
+    "sonarqube_get_sonar_issue_context": true,
+    "sonarqube_get_sonar_fix_plan": true,
+    "sonarqube_get_quality_gate_status": true,
+    "sonarqube_get_rule_details": true,
+    "sonarqube_get_component_measures": true,
+    "sonarqube_search_sonar_projects": true,
     "sequential-thinking": true, "memos_*": true
   }
 }'''
