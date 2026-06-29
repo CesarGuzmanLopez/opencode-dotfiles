@@ -13,10 +13,12 @@ Thumbs.db
 *.bak
 
 # Wrapper scripts con tokens (NUNCA commitear)
-bin/
+bin/sonarqube-mcp-wrapper.sh
 
-# API keys — NUNCA commitear
+# Config personal — NUNCA commitear (contiene API keys)
 opencode.jsonc
+
+# Secrets locales — NUNCA commitear
 .env
 .env.*
 *.key

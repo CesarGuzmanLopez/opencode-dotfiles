@@ -1,0 +1,484 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "default_agent": "plan",
+  "model": "guzman-lopez/normal-gratis",
+  "autoupdate": "notify",
+  "plugin": [],
+
+  "provider": {
+    "guzman-lopez": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "guzman-lopez",
+      "modalities": {
+        "input": ["text", "image", "pdf"],
+        "output": ["text"]
+      },
+      "options": {
+        "baseURL": "https://llm.guzman-lopez.com/v1",
+        "apiKey": "${PROXY_API_KEY}"
+      },
+      "models": {
+        "pensamiento-profundo-caro": {
+          "name": "Pensamiento Profundo",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "tareas-avanzadas": {
+          "name": "Tareas Avanzadas",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "normal": {
+          "name": "Normal",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "vision": {
+          "name": "Visión",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": false
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "normal-gratis": {
+          "name": "Normal Gratis",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": true
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "flash": {
+          "name": "Flash",
+          "capabilities": {
+            "tools": true, "vision": true, "streaming": true,
+            "function_calling": true, "parallel_tool_calls": false
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "compactador": {
+          "name": "Compactador",
+          "capabilities": {
+            "tools": false, "vision": true, "streaming": true,
+            "function_calling": false, "parallel_tool_calls": false
+          },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        }
+      }
+    }
+  },
+
+  "agent": {
+    "plan": {
+      "mode": "primary",
+      "description": "Planning, analysis, and documentation research. Read-only.",
+      "temperature": 0.1,
+      "prompt": "You are a senior tech lead for planning and documentation research.",
+      "permission": {
+        "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "plan": "allow", "read": "allow", "doc-scout": "allow",
+          "fact-checker": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true, "context7_*": true, "web-search_*": true,
+        "arxiv_*": true, "pdf_*": true
+      }
+    },
+    "read": {
+      "mode": "primary",
+      "description": "Pure read-only mode. Minimal access.",
+      "temperature": 0.1,
+      "prompt": "You are a read-only assistant.",
+      "permission": {
+        "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "deny",
+        "external_directory": "allow", "todowrite": "deny",
+        "webfetch": "deny", "websearch": "deny", "lsp": "allow",
+        "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "pdf_*": true, "arxiv_*": true, "web-search_*": true, "context7_*": true
+      }
+    },
+    "research": {
+      "mode": "primary",
+      "description": "All research: scientific, web, documentation, fact-checking.",
+      "temperature": 0.15,
+      "prompt": "You are a research specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "deep-research": "allow", "scientific-research": "allow",
+          "scientific-computing": "allow", "doc-scout": "allow",
+          "fact-checker": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true,
+        "arxiv_*": true, "pdf_*": true, "web-search_*": true,
+        "context7_*": true, "pubchem_*": true
+      }
+    },
+    "coding": {
+      "mode": "primary",
+      "description": "Developer. Writes, debugs y refactoriza.",
+      "temperature": 0.15,
+      "prompt": "You are a Developer specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "web-search_*": true, "context7_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "coding-web": {
+      "mode": "primary",
+      "description": "Web developer. Frontend, backend, APIs.",
+      "temperature": 0.15,
+      "prompt": "You are a web development specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "playwright_*": true, "web-search_*": true,
+        "context7_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "code-quality": {
+      "mode": "primary",
+      "description": "Code review, testing, and refactoring.",
+      "temperature": 0.15,
+      "prompt": "You are a code quality specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "code-reviewer": "allow", "test-writer": "allow",
+          "tdd": "allow", "refactoring": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "sonarqube_*": true, "git_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "build": {
+      "mode": "primary",
+      "temperature": 0.1,
+      "description": "Handles project building and compilation tasks.",
+      "prompt": "You are a build specialist.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow"
+        },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "sonarqube_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "refactoring": {
+      "mode": "primary", "temperature": 0.15,
+      "description": "Refactors code improving structure and readability.",
+      "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "system-tools": "allow", "refactoring": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "pdf_*": true
+      }
+    },
+    "typescript-dev": {
+      "mode": "primary", "temperature": 0.15,
+      "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
+      "prompt": "You are a TypeScript/JavaScript developer. Load the coding skill.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "rust-dev": {
+      "mode": "primary", "temperature": 0.15,
+      "description": "Rust developer. Cargo, crates, systems programming.",
+      "prompt": "You are a Rust developer. Load the coding skill.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "cpp-dev": {
+      "mode": "primary", "temperature": 0.15,
+      "description": "C/C++ developer. CMake, Make, systems programming.",
+      "prompt": "You are a C/C++ developer. Load the coding skill.",
+      "permission": {
+        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+        "grep": "allow", "list": "allow", "task": "allow",
+        "external_directory": "allow", "todowrite": "allow",
+        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+        "question": "allow", "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true,
+        "neovim_vim_status": true, "neovim_vim_buffer": true,
+        "neovim_vim_file_open": true, "neovim_vim_health": true
+      }
+    },
+    "compaction": {
+      "model": "guzman-lopez/compactador"
+    }
+  },
+
+  "lsp": {
+    "typescript": {
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/typescript-language-server",
+        "--stdio"
+      ],
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]
+    },
+    "python": {
+      "command": ["pylsp"],
+      "extensions": [".py", ".pyi"],
+      "initialization": {
+        "pylsp": {
+          "plugins": {
+            "preload": { "enabled": false },
+            "pylint": { "enabled": false },
+            "mypy_ls": { "enabled": false },
+            "jedi_completion": { "resolve_at_most": 5 }
+          }
+        }
+      }
+    },
+    "cpp": {
+      "command": ["clangd"],
+      "extensions": [".cpp", ".cxx", ".cc", ".c", ".h", ".hpp", ".hxx"]
+    },
+    "rust": {
+      "command": ["rust-analyzer"],
+      "extensions": [".rs"]
+    }
+  },
+
+  "mcp": {
+    "playwright": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/playwright-mcp",
+        "--browser", "chromium",
+        "--executable-path",
+        "/home/cesar/.cache/ms-playwright/chromium-1224/chrome-linux64/chrome",
+        "--no-sandbox"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/mcp-server-sequential-thinking"
+      ]
+    },
+    "memory": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/mcp-server-memory"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "/home/cesar/.config/opencode/memory/memory.json"
+      }
+    },
+    "context7": {
+      "type": "local", "enabled": true,
+      "command": ["npx", "-y", "@upstash/context7-mcp"]
+    },
+    "web-search": {
+      "type": "local", "enabled": true,
+      "command": [
+        "python3", "/home/cesar/.config/opencode/bin/searxng-mcp.py"
+      ],
+      "env": {
+        "SEARXNG_URL": "https://sear.guzman-lopez.com",
+        "SEARXNG_USER": "${SEARXNG_USER}",
+        "SEARXNG_PASS": "${SEARXNG_PASS}"
+      }
+    },
+    "arxiv": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.local/bin/arxiv-mcp-server",
+        "--storage-path", "/home/cesar/.arxiv-mcp-server/papers"
+      ]
+    },
+    "pdf": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/pdf-reader-mcp"
+      ]
+    },
+    "git": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/git-mcp-server"
+      ]
+    },
+    "pubchem": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/pubchem-mcp-server"
+      ]
+    },
+    "sonarqube": {
+      "type": "local", "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/bin/sonarqube-mcp-wrapper.sh"
+      ]
+    },
+    "memos": {
+      "type": "remote", "enabled": true,
+      "url": "http://217.154.101.35:8443/mcp",
+      "headers": {
+        "Authorization": "Bearer ${MEMOS_MCP_TOKEN}"
+      }
+    },
+    "neovim": {
+      "type": "local", "enabled": true,
+      "command": ["npx", "-y", "mcp-neovim-server"],
+      "env": {
+        "ALLOW_SHELL_COMMANDS": "false",
+        "NVIM_SOCKET_PATH": "/tmp/nvim"
+      }
+    }
+  },
+
+  "permission": {
+    "ruff": "allow",
+    "verify-deps": "allow",
+    "verify-opencode": "allow",
+    "web-search_*": "allow",
+    "arxiv_*": "allow",
+    "git_*": "allow", "pdf_*": "allow",
+    "playwright_*": "allow", "memory_*": "allow",
+    "pubchem_*": "allow", "context7_*": "allow",
+    "sequential-thinking": "allow", "sonarqube": "allow",
+    "memos_*": "allow",
+    "neovim_vim_status": "allow", "neovim_vim_buffer": "allow",
+    "neovim_vim_file_open": "allow", "neovim_vim_health": "allow",
+    "skill": {
+      "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
+      "coding": "deny", "scientific-research": "deny",
+      "scientific-computing": "deny", "deep-research": "deny",
+      "doc-scout": "deny", "fact-checker": "deny",
+      "code-reviewer": "deny", "refactoring": "deny",
+      "test-writer": "deny", "tdd": "deny", "commit-message": "deny",
+      "systematic-debugging": "deny"
+    }
+  },
+
+  "tools": {
+    "git_*": true, "arxiv_*": true, "pdf_*": true,
+    "playwright_*": true, "memory_*": true, "pubchem_*": true,
+    "web-search_*": true, "context7_*": true,
+    "sequential-thinking": true, "sonarqube": true, "memos_*": true
+  }
+}
