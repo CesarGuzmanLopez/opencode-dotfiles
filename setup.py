@@ -17,6 +17,7 @@ import sys
 import platform
 import subprocess
 import argparse
+import stat
 import shutil
 from pathlib import Path, PureWindowsPath, PurePosixPath
 
@@ -2468,6 +2469,20 @@ Ejemplos:
     write_file(target / "package.json", PACKAGE_JSON)
     write_file(target / ".gitignore", GITIGNORE)
     write_file(target / "tui.json", TUI_JSON)
+
+    # Configurar hook de pre-commit (seguridad: bloquea leaks de API keys)
+    import subprocess
+    # Copiar hooks/ del repo si existe
+    hooks_src = Path(__file__).parent / "hooks"
+    hooks_dst = target / "hooks"
+    if hooks_src.exists():
+        shutil.copytree(hooks_src, hooks_dst, dirs_exist_ok=True)
+        for h in hooks_dst.iterdir():
+            h.chmod(h.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
+        ok("hooks/ copiado")
+    subprocess.run(["git", "config", "core.hooksPath", "hooks"],
+                   cwd=target, capture_output=True)
+    ok("git hooksPath → hooks/")
     # .env.example (nunca sobrescribe .env real)
     env_example = target / ".env.example"
     if not env_example.exists():
