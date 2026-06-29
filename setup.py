@@ -70,13 +70,16 @@ PACKAGE_JSON = r'''{
   "private": true,
   "type": "module",
   "dependencies": {
+    "@cyanheads/git-mcp-server": "latest",
+    "@cyanheads/pubchem-mcp-server": "latest",
     "@opencode-ai/plugin": "1.16.2",
     "@playwright/mcp": "latest",
     "@sylphx/pdf-reader-mcp": "latest",
-    "git-mcp-server": "^1.0.0",
+    "@upstash/context7-mcp": "^3.2.2",
+    "mcp-duckduckgo": "^2.0.0",
     "mcp-sequential-thinking": "^0.6.7",
     "mcp-server-memory": "^1.0.3",
-    "@cyanheads/pubchem-mcp-server": "latest",
+    "sonarqube-api-mcp": "^0.2.0",
     "typescript-language-server": "^5.3.0"
   },
   "devDependencies": {
@@ -367,7 +370,7 @@ const MCP_MAP = {
   "web-search": "searxng-mcp (Python)",
   "arxiv": "arxiv-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
-  "git": "git-mcp-server",
+  "git": "@cyanheads/git-mcp-server",
   "pubchem": "@cyanheads/pubchem-mcp-server",
   "playwright": "@playwright/mcp",
   "sequential-thinking": "mcp-sequential-thinking",
@@ -1090,8 +1093,8 @@ For each feature, produce:
 
 OPENCODE_JSONC = r'''{
   "$schema": "https://opencode.ai/config.json",
-
   "default_agent": "plan",
+  "model": "guzman-lopez/normal-gratis",
   "autoupdate": "notify",
   "plugin": [],
 
@@ -1256,7 +1259,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "web-search_*": true, "context7_*": true, "pdf_*": true
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "web-search_*": true, "context7_*": true, "pdf_*": true
       }
     },
     "coding-web": {
@@ -1302,7 +1305,8 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "pdf_*": true
+        "sonarqube_*": true,
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
       }
     },
     "build": {
@@ -1325,7 +1329,8 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "pdf_*": true
+        "sonarqube_*": true,
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
       }
     },
     "refactoring": {
@@ -1343,7 +1348,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "context7_*": true, "pdf_*": true
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "pdf_*": true
       }
     },
     "typescript-dev": {
@@ -1361,7 +1366,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
       }
     },
     "rust-dev": {
@@ -1379,7 +1384,7 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
       }
     },
     "cpp-dev": {
@@ -1397,11 +1402,8 @@ OPENCODE_JSONC = r'''{
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
-        "git_*": true, "context7_*": true, "web-search_*": true, "pdf_*": true
+        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
       }
-    },
-    "compaction": {
-      "model": "guzman-lopez/compactador"
     }
   },
 
@@ -1465,7 +1467,9 @@ OPENCODE_JSONC = r'''{
     },
     "context7": {
       "type": "local", "enabled": true,
-      "command": ["npx", "-y", "@upstash/context7-mcp"]
+      "command": [
+        "{BASE_DIR}/node_modules/.bin/context7-mcp"
+      ]
     },
     "web-search": {
       "type": "local", "enabled": true,
@@ -1476,7 +1480,7 @@ OPENCODE_JSONC = r'''{
     "arxiv": {
       "type": "local", "enabled": true,
       "command": [
-        "arxiv-mcp-server",
+        "{HOME}/.local/bin/arxiv-mcp-server",
         "--storage-path", "{HOME}/.arxiv-mcp-server/papers"
       ]
     },
@@ -1498,6 +1502,12 @@ OPENCODE_JSONC = r'''{
         "{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"
       ]
     },
+    "sonarqube": {
+      "type": "local", "enabled": true,
+      "command": [
+        "{BASE_DIR}/bin/sonarqube-mcp-wrapper.sh"
+      ]
+    },
     "memos": {
       "type": "remote", "enabled": true,
       "url": "http://217.154.101.35:8443/mcp",
@@ -1513,10 +1523,11 @@ OPENCODE_JSONC = r'''{
     "verify-opencode": "allow",
     "web-search_*": "allow",
     "arxiv_*": "allow",
-    "git_*": "allow", "pdf_*": "allow",
+    "git_status": "allow", "git_add": "allow", "git_commit": "allow", "git_diff": "allow", "git_log": "allow", "git_push": "allow", "git_pull": "allow", "git_checkout": "allow", "git_branch": "allow", "git_show": "allow", "git_merge": "allow", "git_fetch": "allow", "git_reset": "allow", "git_stash": "allow", "pdf_*": "allow",
     "playwright_*": "allow", "memory_*": "allow",
     "pubchem_*": "allow", "context7_*": "allow",
     "sequential-thinking": "allow",
+    "sonarqube": "allow",
     "memos_*": "allow",
     "skill": {
       "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
@@ -1530,12 +1541,12 @@ OPENCODE_JSONC = r'''{
   },
 
   "tools": {
-    "git_*": true, "arxiv_*": true, "pdf_*": true,
-    "playwright_*": true, "memory_*": true, "pubchem_*": true,
+    "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true,
+    "playwright_*": true, "memory_*": true,
     "web-search_*": true, "context7_*": true,
+    "sonarqube": true,
     "sequential-thinking": true, "memos_*": true
   }
-}
 }'''
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -2235,6 +2246,75 @@ def verify_installation(target_dir):
     return all_ok
 
 
+def verify_neovim(socket_path):
+    """Verifica que Neovim MCP pueda funcionar: npx disponible y socket reachable."""
+    info("Verificando pre-requisitos de Neovim...")
+    if shutil.which("npx") is None:
+        err("npx no encontrado. Neovim MCP requiere Node.js/npm.")
+        return False
+    try:
+        r = subprocess.run(
+            ["npx", "-y", "mcp-neovim-server", "--version"],
+            capture_output=True, text=True, timeout=30
+        )
+        if r.returncode != 0:
+            err(f"mcp-neovim-server no responde: {r.stderr[:200]}")
+            return False
+        ok(f"mcp-neovim-server disponible: {r.stdout.strip()[:50]}")
+    except Exception as e:
+        err(f"Error verificando mcp-neovim-server: {e}")
+        return False
+    if not os.path.exists(socket_path):
+        warn(f"Socket Neovim no encontrado en: {socket_path}")
+        warn("Asegúrate de que Neovim esté corriendo con: nvim --listen {socket_path}")
+        return False
+    ok(f"Socket Neovim encontrado: {socket_path}")
+    return True
+
+
+def inject_neovim(config_path, socket_path):
+    """Inyecta configuracion Neovim MCP en opencode.jsonc."""
+    with open(config_path) as f:
+        config = json.loads(f.read())
+
+    # Agregar MCP neovim
+    config.setdefault("mcp", {})["neovim"] = {
+        "type": "local",
+        "enabled": True,
+        "command": ["npx", "-y", "mcp-neovim-server"],
+        "env": {
+            "ALLOW_SHELL_COMMANDS": "false",
+            "NVIM_SOCKET_PATH": socket_path
+        }
+    }
+
+    # Agregar permissions
+    perm = config.setdefault("permission", {})
+    for t in ["neovim_vim_status", "neovim_vim_buffer", "neovim_vim_file_open", "neovim_vim_health"]:
+        perm[t] = "allow"
+
+    # Agregar neovim tools a agentes de desarrollo
+    neovim_tools = {
+        "neovim_vim_status": True,
+        "neovim_vim_buffer": True,
+        "neovim_vim_file_open": True,
+        "neovim_vim_health": True
+    }
+    dev_agents = ["coding", "coding-web", "code-quality", "build",
+                  "typescript-dev", "rust-dev", "cpp-dev"]
+    agents = config.setdefault("agent", {})
+    for name in dev_agents:
+        if name in agents:
+            agents[name].setdefault("tools", {}).update(neovim_tools)
+
+    # Agregar neovim a global tools
+    config.setdefault("tools", {}).update(neovim_tools)
+
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+    ok("Neovim MCP injectado en config")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="opencode Installer — Genera el entorno completo desde cero",
@@ -2243,10 +2323,13 @@ Ejemplos:
   python3 setup.py                              # Instala en directorio actual
   python3 setup.py --target ~/opencode          # Instala en ruta especifica
   python3 setup.py --api-key "sk-..."           # Pasa la API key
+  python3 setup.py --neovim                     # Activa Neovim MCP (opcional)
   OPENCODE_API_KEY="sk-..." python3 setup.py    # O por variable de entorno
         """)
     parser.add_argument("--target", "-t", default=".", help="Directorio destino")
     parser.add_argument("--api-key", "-k", default=None, help="API key para chat.guzman-lopez.com")
+    parser.add_argument("--neovim", action="store_true", help="Activar soporte Neovim MCP")
+    parser.add_argument("--nvim-socket", default="/tmp/nvim", help="Socket de Neovim (default: /tmp/nvim)")
     parser.add_argument("--skip-npm", action="store_true", help="Omitir npm install")
     parser.add_argument("--skip-system", action="store_true", help="Omitir dependencias del sistema")
     parser.add_argument("--skip-python", action="store_true", help="Omitir paquetes Python")
@@ -2351,6 +2434,15 @@ Ejemplos:
             config_text = config_text.replace("{MEMOS_TOKEN}", "TU_MEMOS_TOKEN_AQUI")
             warn("MEMOS_TOKEN no configurado. Edita opencode.jsonc manualmente.")
     config_path.write_text(config_text)
+
+    # Neovim MCP (opcional, solo con --neovim)
+    if args.neovim:
+        step("NEOVIM", "Configurando Neovim MCP...")
+        socket = args.nvim_socket
+        if verify_neovim(socket):
+            inject_neovim(config_path, socket)
+        else:
+            warn("Neovim MCP NO activado — pre-requisitos no cumplidos")
 
     # Crear directorio para memory MCP
     memory_dir = target / "memory"
