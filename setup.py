@@ -2471,8 +2471,6 @@ Ejemplos:
     write_file(target / "tui.json", TUI_JSON)
 
     # Configurar hook de pre-commit (seguridad: bloquea leaks de API keys)
-    import subprocess
-    # Copiar hooks/ del repo si existe
     hooks_src = Path(__file__).parent / "hooks"
     hooks_dst = target / "hooks"
     if hooks_src.exists():
@@ -2480,6 +2478,10 @@ Ejemplos:
         for h in hooks_dst.iterdir():
             h.chmod(h.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
         ok("hooks/ copiado")
+    # Inicializar git si no lo está y apuntar hooksPath
+    git_dir = target / ".git"
+    if not git_dir.exists():
+        subprocess.run(["git", "init"], cwd=target, capture_output=True)
     subprocess.run(["git", "config", "core.hooksPath", "hooks"],
                    cwd=target, capture_output=True)
     ok("git hooksPath → hooks/")
