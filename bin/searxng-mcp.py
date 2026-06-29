@@ -273,9 +273,8 @@ def _handle_request(msg):
 # ── Main loop ─────────────────────────────────────────────────────────────
 
 def main():
-    # Send initialized notification
-    _send({"jsonrpc": "2.0", "method": "initialized"})
-
+    # The MCP protocol requires the client to send "initialize" first.
+    # The server responds with capabilities — do NOT send anything proactively.
     for line in sys.stdin:
         line = line.strip()
         if not line:

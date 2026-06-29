@@ -9,7 +9,7 @@ export const VerifyOpencodePlugin: Plugin = async (ctx) => {
         async execute(args, context) {
           let output = "# OpenCode Verification Report\n\n"
           const home = process.env.HOME || process.env.USERPROFILE || ""
-          const configPath = home ? `${home}/.config/opencode/opencode.json` : "~/.config/opencode/opencode.json"
+          const configPath = home ? `${home}/.config/opencode/opencode.jsonc` : "~/.config/opencode/opencode.jsonc"
 
           const check = async (name, cmd, timeoutMs = 5000) => {
             try {
@@ -20,7 +20,18 @@ export const VerifyOpencodePlugin: Plugin = async (ctx) => {
             }
           }
           const results = []
-          results.push(await check("Config JSON", `python3 -m json.tool ${configPath} 2>/dev/null && echo VALID || echo INVALID`))
+          // JSONC has comments, use strip-json-comments then validate with python
+          results.push(await check(
+            "Config JSONC",
+            `python3 -c "
+import json, re, sys
+with open('${configPath}') as f:
+    # Strip single-line comments (JSONC format)
+    text = re.sub(r'//.*', '', f.read())
+    json.loads(text)
+    print('VALID')
+" 2>/dev/null || echo 'INVALID'`
+          ))
           try {
             const agents = await Bun.$`opencode agent list 2>&1`.timeout(10000).text()
             const count = agents.split("\n").filter(l => l.includes("primary")).length

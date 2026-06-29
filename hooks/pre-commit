@@ -13,6 +13,16 @@ FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
 FOUND=0
 
+# ── Bloqueo absoluto: .env NUNCA debe commitearte ──
+for file in $FILES; do
+  if [[ "$file" == .env ]] || [[ "$file" == *.env ]]; then
+    echo -e "${RED}[BLOQUEO] $file no debe estar en el repositorio${NC}"
+    echo -e "${RED}  → Contiene credenciales (API keys, tokens, contraseñas)${NC}"
+    echo -e "${RED}  → Quitalo del staging: git rm --cached $file${NC}"
+    FOUND=1
+  fi
+done
+
 check_secret() {
   local file="$1" label="$2" pattern="$3"
   local match

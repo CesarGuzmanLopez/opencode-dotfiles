@@ -19,7 +19,16 @@ import subprocess
 import argparse
 import stat
 import shutil
+import logging
 from pathlib import Path, PureWindowsPath, PurePosixPath
+
+# Logging simple: escribe a setup.log en el directorio actual
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename='setup.log',
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    filemode='w'
+)
 
 # Detectar OS una vez
 IS_LINUX   = sys.platform == "linux"
@@ -73,11 +82,10 @@ PACKAGE_JSON = r'''{
   "dependencies": {
     "@cyanheads/git-mcp-server": "latest",
     "@cyanheads/pubchem-mcp-server": "latest",
-    "@opencode-ai/plugin": "1.16.2",
+    "@opencode-ai/plugin": "1.17.11",
     "@playwright/mcp": "latest",
     "@sylphx/pdf-reader-mcp": "latest",
     "@upstash/context7-mcp": "^3.2.2",
-    "mcp-duckduckgo": "^2.0.0",
     "mcp-sequential-thinking": "^0.6.7",
     "mcp-server-memory": "^1.0.3",
     "sonarqube-api-mcp": "^0.2.0",
@@ -278,42 +286,70 @@ export const PlotextPlugin: Plugin = async (ctx) => {
         },
         async execute(args, context) {
           const dir = context.worktree || context.directory || "."
+          // Safe: pass params via temp JSON file, not interpolated into the script
+          const params = JSON.stringify({
+            type: args.type,
+            data: args.data,
+            title: args.title || "",
+            xlabel: args.xlabel || "",
+            ylabel: args.ylabel || "",
+            width: args.width || 80,
+          })
           const script = `
-import json, sys
+import json, sys, os
 try:
     import plotext as plt
 except ImportError:
     print("plotext not installed. Run: pip install plotext")
     sys.exit(0)
-data = json.loads(\\'\\'\\'${args.data}\\'\\'\\')
-if "${args.title}": plt.title("${args.title}")
-if "${args.xlabel}": plt.xlabel("${args.xlabel}")
-if "${args.ylabel}": plt.ylabel("${args.ylabel}")
-plt.plot_size(${args.width || 80}, 20)
-if "${args.type}" == "bar":
+
+params_path = sys.argv[1]
+with open(params_path) as f:
+    params = json.load(f)
+
+data = json.loads(params["data"])
+chart_type = params["type"]
+width = params["width"]
+
+if params["title"]:
+    plt.title(params["title"])
+if params["xlabel"]:
+    plt.xlabel(params["xlabel"])
+if params["ylabel"]:
+    plt.ylabel(params["ylabel"])
+plt.plot_size(width, 20)
+
+if chart_type == "bar":
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         plt.bar([d.get("label", str(i)) for i,d in enumerate(data)], [d.get("value", 0) for d in data])
     else:
         plt.bar(range(len(data)), data)
-elif "${args.type}" == "line":
+elif chart_type == "line":
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         plt.plot([d.get("label", str(i)) for i,d in enumerate(data)], [d.get("value", 0) for d in data])
     else:
         plt.plot(data)
-elif "${args.type}" == "scatter":
+elif chart_type == "scatter":
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         plt.scatter([d.get("x", i) for i,d in enumerate(data)], [d.get("y", 0) for d in data])
     else:
         plt.scatter(range(len(data)), data)
-elif "${args.type}" == "pie":
+elif chart_type == "pie":
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         plt.pie([d.get("label", str(i)) for i,d in enumerate(data)], [d.get("value", 0) for d in data])
     else:
         plt.pie([str(i) for i in range(len(data))], data)
 plt.show()
+os.unlink(params_path)
 `
-          const result = await Bun.$`cd ${dir} && python3 -c ${script}`.text().catch(e => `Error: ${e.message}`)
-          return result || "Chart generated"
+          try {
+            const tmpPath = `/tmp/plotext-${Date.now()}.json`
+            await Bun.write(tmpPath, params)
+            const result = await Bun.$`cd ${dir} && python3 -c ${script} ${tmpPath}`.text()
+            return result || "Chart generated"
+          } catch (e: any) {
+            return `Error: ${e.message}`
+          }
         },
       }),
     },
@@ -454,7 +490,7 @@ export const VerifyOpencodePlugin: Plugin = async (ctx) => {
             }
           }
           const results = []
-          results.push(await check("Config JSON", `python3 -m json.tool ${configPath} 2>/dev/null && echo VALID || echo INVALID`))
+          results.push(await check("Config JSONC", `python3 -c "import json, re; text = open('${configPath}').read(); text = re.sub(r'//.*', '', text); json.loads(text); print('VALID')" 2>/dev/null || echo INVALID`))
           try {
             const agents = await Bun.$`opencode agent list 2>&1`.timeout(10000).text()
             const count = agents.split("\n").filter(l => l.includes("primary")).length
@@ -1089,533 +1125,26 @@ For each feature, produce:
 '''
 
 # ── opencode.jsonc (plantilla) ───────────────────────────────────────────────
-# {BASE_DIR} se reemplaza con la ruta real al instalar
-# {API_KEY} se reemplaza con la key del usuario
+# Se lee de opencode.template.jsonc en disco
+# Los placeholders {BASE_DIR}, {HOME}, {API_KEY}, {CHROMIUM_PATH},
+# {MEMOS_TOKEN} se reemplazan durante la instalacion
 
-OPENCODE_JSONC = r'''{
-  "$schema": "https://opencode.ai/config.json",
-  "default_agent": "plan",
-  "model": "guzman-lopez/normal-gratis",
-  "autoupdate": "notify",
-  "plugin": [],
+def load_template_config(target_dir):
+    """Lee opencode.template.jsonc y reemplaza placeholders con valores reales."""
+    template_path = Path(__file__).parent / "opencode.template.jsonc"
+    if not template_path.exists():
+        err(f"Template no encontrado: {template_path}")
+        err("Asegurate de que opencode.template.jsonc este en el mismo directorio que setup.py")
+        sys.exit(1)
 
-  "provider": {
-    "guzman-lopez": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "guzman-lopez",
-      "modalities": {
-        "input": ["text", "image", "pdf"],
-        "output": ["text"]
-      },
-      "options": {
-        "baseURL": "https://llm.guzman-lopez.com/v1",
-        "apiKey": "{API_KEY}"
-      },
-      "models": {
-        "pensamiento-profundo-caro": {
-          "name": "Pensamiento Profundo",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": true
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "tareas-avanzadas": {
-          "name": "Tareas Avanzadas",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": true
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "normal": {
-          "name": "Normal",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": true
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "vision": {
-          "name": "Visión",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": false
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "normal-gratis": {
-          "name": "Normal Gratis",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": true
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "flash": {
-          "name": "Flash",
-          "capabilities": {
-            "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": false
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "compactador": {
-          "name": "Compactador",
-          "capabilities": {
-            "tools": false, "vision": true, "streaming": true,
-            "function_calling": false, "parallel_tool_calls": false
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        }
-      }
-    }
-  },
+    base_dir = str(target_dir)
+    config = template_path.read_text()
 
-  "agent": {
-    "plan": {
-      "mode": "primary",
-      "description": "Planning, analysis, and documentation research. Read-only.",
-      "temperature": 0.1,
-      "prompt": "You are a senior tech lead for planning and documentation research.",
-      "permission": {
-        "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "plan": "allow", "read": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "allow"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "memory_*": true, "context7_*": true, "web-search_*": true,
-        "arxiv_search_papers": true, "arxiv_get_abstract": true,
-        "arxiv_download_paper": true, "arxiv_read_paper": true,
-        "arxiv_list_papers": true, "arxiv_semantic_search": true,
-        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
-        "pdf_*": true
-      }
-    },
-    "read": {
-      "mode": "primary",
-      "description": "Pure read-only mode. Minimal access.",
-      "temperature": 0.1,
-      "prompt": "You are a read-only assistant.",
-      "permission": {
-        "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "deny",
-        "external_directory": "allow", "todowrite": "deny",
-        "webfetch": "deny", "websearch": "deny", "lsp": "allow",
-        "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" },
-        "question": "allow", "doom_loop": "allow"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "pdf_*": true,
-        "arxiv_search_papers": true, "arxiv_get_abstract": true,
-        "arxiv_download_paper": true, "arxiv_read_paper": true,
-        "arxiv_list_papers": true, "arxiv_semantic_search": true,
-        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
-        "web-search_*": true, "context7_*": true
-      }
-    },
-    "research": {
-      "mode": "primary",
-      "description": "All research: scientific, web, documentation, fact-checking.",
-      "temperature": 0.15,
-      "prompt": "You are a research specialist.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "deep-research": "allow", "scientific-research": "allow",
-          "scientific-computing": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "memory_*": true,
-        "arxiv_search_papers": true, "arxiv_get_abstract": true,
-        "arxiv_download_paper": true, "arxiv_read_paper": true,
-        "arxiv_list_papers": true, "arxiv_semantic_search": true,
-        "arxiv_watch_topic": true, "arxiv_check_alerts": true,
-        "pdf_*": true, "web-search_*": true,
-        "context7_*": true, "pubchem_*": true
-      }
-    },
-    "coding": {
-      "mode": "primary",
-      "description": "Developer. Writes, debugs y refactoriza.",
-      "temperature": 0.15,
-      "prompt": "You are a Developer specialist.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
-          "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "web-search_*": true, "context7_*": true, "pdf_*": true
-      }
-    },
-    "coding-web": {
-      "mode": "primary",
-      "description": "Web developer. Frontend, backend, APIs.",
-      "temperature": 0.15,
-      "prompt": "You are a web development specialist.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
-          "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "browser_navigate": true, "browser_click": true,
-        "browser_type": true, "browser_snapshot": true,
-        "browser_take_screenshot": true, "browser_evaluate": true,
-        "browser_wait_for": true, "browser_tabs": true,
-        "browser_fill_form": true, "browser_hover": true,
-        "browser_select_option": true, "browser_close": true,
-        "browser_file_upload": true, "browser_resize": true,
-        "browser_run_code_unsafe": true, "browser_network_request": true,
-        "browser_handle_dialog": true, "browser_press_key": true,
-        "web-search_*": true,
-        "context7_*": true, "pdf_*": true
-      }
-    },
-    "code-quality": {
-      "mode": "primary",
-      "description": "Code review, testing, and refactoring.",
-      "temperature": 0.15,
-      "prompt": "You are a code quality specialist.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "code-reviewer": "allow", "test-writer": "allow",
-          "tdd": "allow", "refactoring": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "sonarqube_search_sonar_issues": true,
-        "sonarqube_get_sonar_issue_context": true,
-        "sonarqube_get_sonar_fix_plan": true,
-        "sonarqube_get_quality_gate_status": true,
-        "sonarqube_get_rule_details": true,
-        "sonarqube_get_component_measures": true,
-        "sonarqube_search_sonar_projects": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
-      }
-    },
-    "build": {
-      "mode": "primary",
-      "temperature": 0.1,
-      "description": "Handles project building and compilation tasks.",
-      "prompt": "You are a build specialist.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
-          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
-          "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "sonarqube_search_sonar_issues": true,
-        "sonarqube_get_sonar_issue_context": true,
-        "sonarqube_get_sonar_fix_plan": true,
-        "sonarqube_get_quality_gate_status": true,
-        "sonarqube_get_rule_details": true,
-        "sonarqube_get_component_measures": true,
-        "sonarqube_search_sonar_projects": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true
-      }
-    },
-    "refactoring": {
-      "mode": "primary", "temperature": 0.15,
-      "description": "Refactors code improving structure and readability.",
-      "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "system-tools": "allow", "refactoring": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "pdf_*": true
-      }
-    },
-    "typescript-dev": {
-      "mode": "primary", "temperature": 0.15,
-      "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
-      "prompt": "You are a TypeScript/JavaScript developer. Load the coding skill.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
-      }
-    },
-    "rust-dev": {
-      "mode": "primary", "temperature": 0.15,
-      "description": "Rust developer. Cargo, crates, systems programming.",
-      "prompt": "You are a Rust developer. Load the coding skill.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
-      }
-    },
-    "cpp-dev": {
-      "mode": "primary", "temperature": 0.15,
-      "description": "C/C++ developer. CMake, Make, systems programming.",
-      "prompt": "You are a C/C++ developer. Load the coding skill.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "context7_*": true, "web-search_*": true, "pdf_*": true
-      }
-    }
-  },
+    # Reemplazar placeholders base
+    config = config.replace("{BASE_DIR}", base_dir)
+    config = config.replace("{HOME}", str(Path.home()))
 
-  "lsp": {
-    "typescript": {
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/typescript-language-server",
-        "--stdio"
-      ],
-      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]
-    },
-    "python": {
-      "command": ["pylsp"],
-      "extensions": [".py", ".pyi"],
-      "initialization": {
-        "pylsp": {
-          "plugins": {
-            "preload": { "enabled": false },
-            "pylint": { "enabled": false },
-            "mypy_ls": { "enabled": false },
-            "jedi_completion": { "resolve_at_most": 5 }
-          }
-        }
-      }
-    },
-    "cpp": {
-      "command": ["clangd"],
-      "extensions": [".cpp", ".cxx", ".cc", ".c", ".h", ".hpp", ".hxx"]
-    },
-    "rust": {
-      "command": ["rust-analyzer"],
-      "extensions": [".rs"]
-    }
-  },
-
-  "mcp": {
-    "playwright": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/playwright-mcp",
-        "--browser", "chromium",
-        "--executable-path",
-        "{CHROMIUM_PATH}",
-        "--no-sandbox"
-      ]
-    },
-    "sequential-thinking": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/mcp-server-sequential-thinking"
-      ]
-    },
-    "memory": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/mcp-server-memory"
-      ],
-      "env": {
-        "MEMORY_FILE_PATH": "{BASE_DIR}/memory/memory.json"
-      }
-    },
-    "context7": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/context7-mcp"
-      ]
-    },
-    "web-search": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/bin/searxng-mcp.sh"
-      ]
-    },
-    "arxiv": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{HOME}/.local/bin/arxiv-mcp-server",
-        "--storage-path", "{HOME}/.arxiv-mcp-server/papers"
-      ]
-    },
-    "pdf": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/pdf-reader-mcp"
-      ]
-    },
-    "git": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/git-mcp-server"
-      ]
-    },
-    "pubchem": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/node_modules/.bin/pubchem-mcp-server"
-      ]
-    },
-    "sonarqube": {
-      "type": "local", "enabled": true,
-      "command": [
-        "{BASE_DIR}/bin/sonarqube-mcp-wrapper.sh"
-      ]
-    },
-    "memos": {
-      "type": "remote", "enabled": true,
-      "url": "http://217.154.101.35:8443/mcp",
-      "headers": {
-        "Authorization": "Bearer {MEMOS_TOKEN}"
-      }
-    }
-  },
-
-  "permission": {
-    "ruff": "allow",
-    "verify-deps": "allow",
-    "verify-opencode": "allow",
-    "web-search_*": "allow",
-    "arxiv_search_papers": "allow", "arxiv_get_abstract": "allow",
-    "arxiv_download_paper": "allow", "arxiv_read_paper": "allow",
-    "arxiv_list_papers": "allow", "arxiv_semantic_search": "allow",
-    "arxiv_watch_topic": "allow", "arxiv_check_alerts": "allow",
-    "git_status": "allow", "git_add": "allow", "git_commit": "allow", "git_diff": "allow", "git_log": "allow", "git_push": "allow", "git_pull": "allow", "git_checkout": "allow", "git_branch": "allow", "git_show": "allow", "git_merge": "allow", "git_fetch": "allow", "git_reset": "allow", "git_stash": "allow", "pdf_*": "allow",
-    "browser_navigate": "allow", "browser_click": "allow",
-    "browser_type": "allow", "browser_snapshot": "allow",
-    "browser_take_screenshot": "allow", "browser_evaluate": "allow",
-    "browser_wait_for": "allow", "browser_tabs": "allow",
-    "browser_fill_form": "allow", "browser_hover": "allow",
-    "browser_select_option": "allow", "browser_close": "allow",
-    "browser_file_upload": "allow", "browser_resize": "allow",
-    "browser_run_code_unsafe": "allow", "browser_network_request": "allow",
-    "browser_handle_dialog": "allow", "browser_press_key": "allow",
-    "memory_*": "allow",
-    "pubchem_*": "allow", "context7_*": "allow",
-    "sequential-thinking": "allow",
-    "sonarqube_search_sonar_issues": "allow",
-    "sonarqube_get_sonar_issue_context": "allow",
-    "sonarqube_get_sonar_fix_plan": "allow",
-    "sonarqube_get_quality_gate_status": "allow",
-    "sonarqube_get_rule_details": "allow",
-    "sonarqube_get_component_measures": "allow",
-    "sonarqube_search_sonar_projects": "allow",
-    "memos_*": "allow",
-    "skill": {
-      "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
-      "coding": "deny", "scientific-research": "deny",
-      "scientific-computing": "deny", "deep-research": "deny",
-      "doc-scout": "deny", "fact-checker": "deny",
-      "code-reviewer": "deny", "refactoring": "deny",
-      "test-writer": "deny", "tdd": "deny", "commit-message": "deny",
-      "systematic-debugging": "deny"
-    }
-  },
-
-  "tools": {
-    "git_status": true, "git_add": true, "git_commit": true, "git_diff": true, "git_log": true, "git_push": true, "git_pull": true, "git_checkout": true, "git_branch": true, "git_show": true, "git_merge": true, "git_fetch": true, "git_reset": true, "git_stash": true, "pdf_*": true,
-    "browser_navigate": true, "browser_click": true,
-    "browser_type": true, "browser_snapshot": true,
-    "browser_take_screenshot": true, "browser_evaluate": true,
-    "browser_wait_for": true, "browser_tabs": true,
-    "browser_fill_form": true, "browser_hover": true,
-    "browser_select_option": true, "browser_close": true,
-    "browser_file_upload": true, "browser_resize": true,
-    "browser_run_code_unsafe": true, "browser_network_request": true,
-    "browser_handle_dialog": true, "browser_press_key": true,
-    "memory_*": true,
-    "web-search_*": true, "context7_*": true,
-    "sonarqube_search_sonar_issues": true,
-    "sonarqube_get_sonar_issue_context": true,
-    "sonarqube_get_sonar_fix_plan": true,
-    "sonarqube_get_quality_gate_status": true,
-    "sonarqube_get_rule_details": true,
-    "sonarqube_get_component_measures": true,
-    "sonarqube_search_sonar_projects": true,
-    "sequential-thinking": true, "memos_*": true
-  }
-}'''
+    return config
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║  MOTOR DE INSTALACION                                                       ║
@@ -1987,9 +1516,8 @@ def _handle_request(msg):
 # ── Main loop ─────────────────────────────────────────────────────────────
 
 def main():
-    # Send initialized notification
-    _send({"jsonrpc": "2.0", "method": "initialized"})
-
+    # MCP protocol: client sends "initialize" first, server responds.
+    # Do NOT send anything proactively.
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -2179,7 +1707,8 @@ def install_system_deps():
                 # NOTA: chr(10) = '\n' (Pyright lo marca como "str" en vez de "ReadableBuffer" — falso positivo)
             else:
                 missing.append(name)
-        except Exception:
+        except Exception as e:
+            logging.warning(f"Dependencia del sistema no encontrada: {name} — {e}")
             missing.append(name)
 
     if missing:
@@ -2434,9 +1963,7 @@ Ejemplos:
 
     # 3. Generar opencode.jsonc
     step("3/7", "Generando opencode.jsonc...")
-    base_dir = str(target)
-    config = OPENCODE_JSONC.replace("{BASE_DIR}", base_dir)
-    config = config.replace("{HOME}", str(Path.home()))
+    config = load_template_config(target)
     # Detectar ruta de Chromium instalada por Playwright (cross-platform)
     chromium_path = find_chromium_executable()
     if chromium_path:
@@ -2514,9 +2041,23 @@ Ejemplos:
         memos_token = os.environ.get("MEMOS_TOKEN", "")
         if memos_token:
             config_text = config_text.replace("{MEMOS_TOKEN}", memos_token)
+            ok("MEMOS_TOKEN configurado desde variable de entorno")
         else:
-            config_text = config_text.replace("{MEMOS_TOKEN}", "TU_MEMOS_TOKEN_AQUI")
-            warn("MEMOS_TOKEN no configurado. Edita opencode.jsonc manualmente.")
+            # Preguntar interactivamente
+            memos_token = input("  Ingresa tu MEMOS_TOKEN (o Enter para deshabilitar Memos): ").strip()
+            if memos_token:
+                config_text = config_text.replace("{MEMOS_TOKEN}", memos_token)
+            else:
+                # Deshabilitar el MCP memos en lugar de dejar placeholder inválido
+                import json as _json
+                try:
+                    _parsed = _json.loads(config_text)
+                    if "mcp" in _parsed and "memos" in _parsed["mcp"]:
+                        _parsed["mcp"]["memos"]["enabled"] = False
+                    config_text = _json.dumps(_parsed, indent=2)
+                except Exception:
+                    config_text = config_text.replace('"enabled": true', '"enabled": false', 1)
+                warn("MEMOS_TOKEN no configurado. MCP memos deshabilitado.")
     config_path.write_text(config_text)
 
     # Neovim MCP (opcional, solo con --neovim)

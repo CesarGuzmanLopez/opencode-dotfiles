@@ -20,7 +20,6 @@ opencode.jsonc
 
 # Secrets locales — NUNCA commitear
 .env
-.env.*
 *.key
 secrets.json
 

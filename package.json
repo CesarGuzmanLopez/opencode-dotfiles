@@ -9,7 +9,6 @@
     "@sylphx/pdf-reader-mcp": "latest",
     "@cyanheads/git-mcp-server": "latest",
     "@upstash/context7-mcp": "^3.2.2",
-    "mcp-duckduckgo": "^2.0.0",
     "mcp-sequential-thinking": "^0.6.7",
     "mcp-server-memory": "^1.0.3",
     "sonarqube-api-mcp": "^0.2.0",
