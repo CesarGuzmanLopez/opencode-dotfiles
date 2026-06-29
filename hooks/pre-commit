@@ -1,0 +1,55 @@
+#!/bin/bash
+# Pre-commit hook: bloquea commits con API keys, tokens o secretos
+# Bypass: SKIP=secret-check git commit  (o  git commit --no-verify)
+
+if [ -n "$SKIP" ] && echo "$SKIP" | grep -q "secret-check"; then
+  echo "[pre-commit] secret-check bypassed via SKIP env"
+  exit 0
+fi
+
+RED='\033[0;31m'; NC='\033[0m'
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$FILES" ] && exit 0
+
+FOUND=0
+
+check_secret() {
+  local file="$1" label="$2" pattern="$3"
+  local match
+  match=$(git show ":$file" 2>/dev/null | grep -Pne "$pattern" | head -3)
+  if [ -n "$match" ]; then
+    echo -e "${RED}[SECRET] $label en $file${NC}"
+    echo "$match" | sed 's/^/  > /'
+    return 0
+  fi
+  return 1
+}
+
+for file in $FILES; do
+  # Skip binary files
+  if git show ":$file" 2>/dev/null | head -c 1024 | LC_ALL=C grep -Pq '[^\x00-\x7f]'; then
+    continue
+  fi
+  [[ "$file" == *.key ]] && continue
+  [[ "$file" == hooks/* ]] && continue
+
+  check_secret "$file" "OpenAI sk- key"       'sk-[a-zA-Z0-9]{20,}'           && FOUND=1
+  check_secret "$file" "OpenAI project key"   'sk-proj-[a-zA-Z0-9_-]{20,}'    && FOUND=1
+  check_secret "$file" "MEMOS_TOKEN"          'MEMOS_TOKEN['"'"'"]?\s*[:=]\s*['"'"'"]' && FOUND=1
+  check_secret "$file" "ANTHROPIC_API_KEY"    'ANTHROPIC_API_KEY\s*='          && FOUND=1
+  check_secret "$file" "OPENAI_API_KEY"       'OPENAI_API_KEY\s*='             && FOUND=1
+  check_secret "$file" "OPENAI_ORG_ID"        'OPENAI_ORG_ID\s*='              && FOUND=1
+  check_secret "$file" "Private key (PEM)"    '-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----' && FOUND=1
+  check_secret "$file" "Bearer token"         '[Bb]earer\s+[a-zA-Z0-9._-]{20,}' && FOUND=1
+  check_secret "$file" "Password inline"      '[Pp]assword\s*[=:]\s*["'"'"'][^"'"'"']+["'"'"']' && FOUND=1
+  check_secret "$file" "Secret inline"        '[Ss]ecret\s*[=:]\s*["'"'"'][a-zA-Z0-9]{16,}["'"'"']' && FOUND=1
+done
+
+if [ "$FOUND" -eq 1 ]; then
+  echo ""
+  echo -e "${RED}⚠  Commit cancelado. Revisa los archivos arriba.${NC}"
+  echo -e "${RED}   Bypass: SKIP=secret-check git commit  o  git commit --no-verify${NC}"
+  exit 1
+fi
+
+exit 0
