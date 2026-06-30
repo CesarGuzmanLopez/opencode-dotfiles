@@ -1897,7 +1897,7 @@ def inject_neovim(config_path, socket_path):
         "neovim_vim_file_open": True,
         "neovim_vim_health": True
     }
-    dev_agents = ["coding", "coding-web", "code-quality", "build",
+    dev_agents = ["coding", "coding-web", "build",
                   "typescript-dev", "rust-dev", "cpp-dev"]
     agents = config.setdefault("agent", {})
     for name in dev_agents:

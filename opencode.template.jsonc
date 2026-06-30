@@ -103,7 +103,7 @@
       "mode": "primary",
       "description": "Planning, analysis, and documentation research. Read-only.",
       "temperature": 0.7,
-      "prompt": "You are a creative tech lead for planning and research. Think broadly, explore multiple angles with web-search and arxiv, use sequential-thinking to reason step by step, and store discoveries in memory. Break ambiguous requirements into concrete tasks, identify risks early, and delegate execution to specialist agents. Your plans should be imaginative but grounded — you are supervised, so take risks.",
+      "prompt": "You are a creative tech lead for planning and research. Think broadly, explore multiple angles with web-search and arxiv, use sequential-thinking to reason step by step, and store discoveries in memory. Break ambiguous requirements into concrete tasks, identify risks early, and delegate execution to specialist agents.",
       "permission": {
         "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
@@ -183,17 +183,17 @@
     },
     "coding": {
       "mode": "primary",
-      "description": "Developer. Writes, debugs y refactoriza.",
+      "description": "Developer. Escribe, depura, revisa calidad y refactoriza.",
       "temperature": 0.5,
-      "prompt": "You are a Developer specialist. Write, debug, refactor, and test code. Use git for diffs, commits, branches, and history. Use sequential-thinking to reason through complex logic. Look up APIs with context7. Run ruff for Python linting. Write tests, verify they pass, then commit. Think beyond the obvious solution.",
+      "prompt": "You are a Developer specialist. Write, debug, refactor, and test code — code quality is part of development, not a separate step. Use git for diffs, commits, branches, and history. Use sequential-thinking to reason through complex logic. Use sonarqube tools (search_sonar_issues, get_sonar_fix_plan, get_quality_gate_status) to catch issues early. Look up APIs with context7. Run ruff for Python linting. Write tests, verify they pass, then commit. Think beyond the obvious solution.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
-"skill": {
-          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
-          "tdd": "allow", "commit-message": "allow",
+        "skill": {
+          "coding": "allow", "code-reviewer": "allow", "refactoring": "allow",
+          "test-writer": "allow", "tdd": "allow", "commit-message": "allow",
           "systematic-debugging": "allow", "system-tools": "allow",
           "stop-slop": "allow"
         },
@@ -202,6 +202,13 @@
       "tools": {
         "memos_*": true,
         "sequential-thinking": true,
+        "sonarqube_search_sonar_issues": true,
+        "sonarqube_get_sonar_issue_context": true,
+        "sonarqube_get_sonar_fix_plan": true,
+        "sonarqube_get_quality_gate_status": true,
+        "sonarqube_get_rule_details": true,
+        "sonarqube_get_component_measures": true,
+        "sonarqube_search_sonar_projects": true,
         "git_status": true, "git_add": true, "git_commit": true,
         "git_diff": true, "git_log": true, "git_push": true,
         "git_pull": true, "git_checkout": true, "git_branch": true,
@@ -243,40 +250,6 @@
         "web-search_*": true, "context7_*": true, "pdf_*": true
       }
     },
-    "code-quality": {
-      "mode": "primary",
-      "description": "Code review, testing, and refactoring.",
-      "temperature": 0.3,
-      "prompt": "You are a code quality specialist. Run sonarqube tools (search_sonar_issues, get_sonar_fix_plan, get_quality_gate_status) to analyze code. Use git diff and log to review changes. Write tests, check for bugs, security issues, and style. Reject code that doesn't meet standards — be specific.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "lsp": "allow",
-        "skill": {
-          "code-reviewer": "allow", "test-writer": "allow",
-          "tdd": "allow", "refactoring": "allow", "system-tools": "allow",
-          "stop-slop": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "sonarqube_search_sonar_issues": true,
-        "sonarqube_get_sonar_issue_context": true,
-        "sonarqube_get_sonar_fix_plan": true,
-        "sonarqube_get_quality_gate_status": true,
-        "sonarqube_get_rule_details": true,
-        "sonarqube_get_component_measures": true,
-        "sonarqube_search_sonar_projects": true,
-        "git_status": true, "git_add": true, "git_commit": true,
-        "git_diff": true, "git_log": true, "git_push": true,
-        "git_pull": true, "git_checkout": true, "git_branch": true,
-        "git_show": true, "git_merge": true, "git_fetch": true,
-        "git_reset": true, "git_stash": true, "pdf_*": true
-      }
-    },
     "build": {
       "mode": "primary",
       "temperature": 0.3,
@@ -310,30 +283,6 @@
         "git_pull": true, "git_checkout": true, "git_branch": true,
         "git_show": true, "git_merge": true, "git_fetch": true,
         "git_reset": true, "git_stash": true, "pdf_*": true
-      }
-    },
-    "refactoring": {
-      "mode": "primary",
-      "temperature": 0.4,
-      "description": "Refactors code improving structure and readability.",
-      "prompt": "You are a refactoring specialist. Improve code structure without changing behavior. Use comby for multi-file structural transformations. Use git diff to verify only intended changes. One refactor per commit. Prefer small, safe steps over big rewrites.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "lsp": "allow",
-        "skill": { "system-tools": "allow", "refactoring": "allow", "stop-slop": "allow", "test-writer": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true,
-        "git_diff": true, "git_log": true, "git_push": true,
-        "git_pull": true, "git_checkout": true, "git_branch": true,
-        "git_show": true, "git_merge": true, "git_fetch": true,
-        "git_reset": true, "git_stash": true,
-        "context7_*": true, "pdf_*": true
       }
     },
     "typescript-dev": {
