@@ -1990,6 +1990,17 @@ Ejemplos:
 
     for name, content in SKILLS.items():
         write_file(target / "skills" / name, content)
+    # Copiar skills adicionales que existen en disco pero no en SKILLS dict
+    skills_src = Path(__file__).parent / "skills"
+    if skills_src.exists():
+        for skill_dir in skills_src.iterdir():
+            if skill_dir.is_dir():
+                skill_file = skill_dir / "SKILL.md"
+                if skill_file.exists():
+                    skill_key = f"{skill_dir.name}/SKILL.md"
+                    if skill_key not in SKILLS:
+                        dst = target / "skills" / skill_dir.name
+                        shutil.copytree(skill_dir, dst, dirs_exist_ok=True)
     ok(f"{len(SKILLS)} skills generados")
 
     # 5. Generar archivos auxiliares

@@ -110,10 +110,12 @@
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
         "skill": {
-          "plan": "allow", "read": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow",
-          "stop-slop": "allow", "deep-research": "allow"
-        },
+           "plan": "allow", "read": "allow", "doc-scout": "allow",
+           "fact-checker": "allow", "system-tools": "allow",
+           "stop-slop": "allow", "deep-research": "allow",
+           "code-reviewer": "allow", "mcp-builder": "allow",
+           "frontend-design": "allow"
+         },
         "question": "allow", "doom_loop": "allow"
       },
       "tools": {
@@ -162,11 +164,12 @@
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
         "skill": {
-          "deep-research": "allow", "scientific-research": "allow",
-          "scientific-computing": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow",
-          "stop-slop": "allow", "mcp-builder": "allow"
-        },
+           "deep-research": "allow", "scientific-research": "allow",
+           "scientific-computing": "allow", "doc-scout": "allow",
+           "fact-checker": "allow", "system-tools": "allow",
+           "stop-slop": "allow", "mcp-builder": "allow",
+           "code-reviewer": "allow", "plan": "allow"
+         },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -191,33 +194,33 @@
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
-        "skill": {
-          "coding": "allow", "code-reviewer": "allow", "refactoring": "allow",
-          "test-writer": "allow", "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow",
-          "stop-slop": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "sonarqube_search_sonar_issues": true,
-        "sonarqube_get_sonar_issue_context": true,
-        "sonarqube_get_sonar_fix_plan": true,
-        "sonarqube_get_quality_gate_status": true,
-        "sonarqube_get_rule_details": true,
-        "sonarqube_get_component_measures": true,
-        "sonarqube_search_sonar_projects": true,
-        "git_status": true, "git_add": true, "git_commit": true,
-        "git_diff": true, "git_log": true, "git_push": true,
-        "git_pull": true, "git_checkout": true, "git_branch": true,
-        "git_show": true, "git_merge": true, "git_fetch": true,
-        "git_reset": true, "git_stash": true,
-        "web-search_*": true, "context7_*": true, "pdf_*": true
-      }
-    },
-    "coding-web": {
+"skill": {
+           "coding": "allow", "code-reviewer": "allow", "refactoring": "allow",
+           "test-writer": "allow", "tdd": "allow", "commit-message": "allow",
+           "systematic-debugging": "allow", "system-tools": "allow",
+           "stop-slop": "allow"
+         },
+         "question": "allow", "doom_loop": "ask"
+       },
+       "tools": {
+         "memos_*": true,
+         "sequential-thinking": true,
+         "sonarqube_search_sonar_issues": true,
+         "sonarqube_get_sonar_issue_context": true,
+         "sonarqube_get_sonar_fix_plan": true,
+         "sonarqube_get_quality_gate_status": true,
+         "sonarqube_get_rule_details": true,
+         "sonarqube_get_component_measures": true,
+         "sonarqube_search_sonar_projects": true,
+         "git_status": true, "git_add": true, "git_commit": true,
+         "git_diff": true, "git_log": true, "git_push": true,
+         "git_pull": true, "git_checkout": true, "git_branch": true,
+         "git_show": true, "git_merge": true, "git_fetch": true,
+         "git_reset": true, "git_stash": true,
+         "web-search_*": true, "context7_*": true, "pdf_*": true
+       }
+     },
+     "coding-web": {
       "mode": "primary",
       "description": "Web developer. Frontend, backend, APIs.",
       "temperature": 0.5,
@@ -228,17 +231,18 @@
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
 "skill": {
-          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
-          "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow",
-          "stop-slop": "allow"
-        },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "browser_navigate": true, "browser_click": true,
+           "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+           "tdd": "allow", "commit-message": "allow",
+           "systematic-debugging": "allow", "system-tools": "allow",
+           "stop-slop": "allow",
+           "frontend-design": "allow", "webapp-testing": "allow"
+         },
+         "question": "allow", "doom_loop": "ask"
+       },
+       "tools": {
+         "memos_*": true,
+         "sequential-thinking": true,
+         "browser_navigate": true, "browser_click": true,
         "browser_type": true, "browser_snapshot": true,
         "browser_take_screenshot": true, "browser_evaluate": true,
         "browser_wait_for": true, "browser_tabs": true,
@@ -295,7 +299,7 @@
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
         "webfetch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "system-tools": "allow", "stop-slop": "allow" },
+        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "system-tools": "allow", "stop-slop": "allow", "code-reviewer": "allow", "systematic-debugging": "allow", "doc-scout": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -319,31 +323,31 @@
          "grep": "allow", "list": "allow", "task": "allow",
          "external_directory": "allow", "todowrite": "allow",
          "webfetch": "allow", "lsp": "allow",
-         "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow" },
-        "question": "allow", "doom_loop": "ask"
-      },
-      "tools": {
-        "memos_*": true,
-        "sequential-thinking": true,
-        "git_status": true, "git_add": true, "git_commit": true,
-        "git_diff": true, "git_log": true, "git_push": true,
-        "git_pull": true, "git_checkout": true, "git_branch": true,
-        "git_show": true, "git_merge": true, "git_fetch": true,
-        "git_reset": true, "git_stash": true,
-        "context7_*": true, "web-search_*": true, "pdf_*": true
-      }
-    },
-    "cpp-dev": {
-      "mode": "primary",
-      "temperature": 0.5,
+          "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow", "commit-message": "allow", "code-reviewer": "allow", "systematic-debugging": "allow", "doc-scout": "allow" },
+         "question": "allow", "doom_loop": "ask"
+       },
+       "tools": {
+         "memos_*": true,
+         "sequential-thinking": true,
+         "git_status": true, "git_add": true, "git_commit": true,
+         "git_diff": true, "git_log": true, "git_push": true,
+         "git_pull": true, "git_checkout": true, "git_branch": true,
+         "git_show": true, "git_merge": true, "git_fetch": true,
+         "git_reset": true, "git_stash": true,
+         "context7_*": true, "web-search_*": true, "pdf_*": true
+       }
+     },
+     "cpp-dev": {
+       "mode": "primary",
+       "temperature": 0.5,
 "description": "C/C++ developer. CMake, Make, systems programming.",
-       "prompt": "You are a C/C++ developer. Use CMake/Make for builds. The clangd LSP provides code analysis — watch its diagnostics. Use git for changes. Run sanitizers (ASan, UBSan) for memory safety. Write unit tests. Prefer modern C++ (17/20/23), RAII, and STL over raw pointers.",
-       "permission": {
-         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-         "grep": "allow", "list": "allow", "task": "allow",
-         "external_directory": "allow", "todowrite": "allow",
-         "webfetch": "allow", "lsp": "allow",
-         "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow" },
+        "prompt": "You are a C/C++ developer. Use CMake/Make for builds. The clangd LSP provides code analysis — watch its diagnostics. Use git for changes. Run sanitizers (ASan, UBSan) for memory safety. Write unit tests. Prefer modern C++ (17/20/23), RAII, and STL over raw pointers.",
+        "permission": {
+          "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+          "grep": "allow", "list": "allow", "task": "allow",
+          "external_directory": "allow", "todowrite": "allow",
+          "webfetch": "allow", "lsp": "allow",
+          "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow", "commit-message": "allow", "code-reviewer": "allow", "systematic-debugging": "allow", "doc-scout": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
