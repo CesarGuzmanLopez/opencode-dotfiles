@@ -51,7 +51,7 @@
           "name": "Visión",
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": false
+            "function_calling": true, "parallel_tool_calls": true
           },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
@@ -67,15 +67,7 @@
           "name": "Flash",
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
-            "function_calling": true, "parallel_tool_calls": false
-          },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "compactador": {
-          "name": "Compactador",
-          "capabilities": {
-            "tools": false, "vision": true, "streaming": true,
-            "function_calling": false, "parallel_tool_calls": false
+            "function_calling": true, "parallel_tool_calls": true
           },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         }
@@ -91,15 +83,16 @@
       "mode": "primary",
       "description": "Planning, analysis, and documentation research. Read-only.",
       "temperature": 0.1,
-      "prompt": "You are a senior tech lead for planning and documentation research.",
+      "prompt": "You are a senior tech lead for planning and documentation research. Read-only by default. Analyze requirements, break down tasks, identify risks, and produce clear plans before any coding begins. Use @file references to explore codebases. Delegate to specialist agents for implementation. Never edit files directly.",
       "permission": {
         "edit": "deny", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "webfetch": "allow", "lsp": "allow",
         "skill": {
           "plan": "allow", "read": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow"
+          "fact-checker": "allow", "system-tools": "allow",
+          "stop-slop": "allow", "deep-research": "allow"
         },
         "question": "allow", "doom_loop": "allow"
       },
@@ -118,13 +111,13 @@
       "mode": "primary",
       "description": "Pure read-only mode. Minimal access.",
       "temperature": 0.1,
-      "prompt": "You are a read-only assistant.",
+      "prompt": "You are a read-only assistant. You can read files, search code, and answer questions. You cannot edit files, run commands, or make any changes. When asked about code, read the relevant files first, then explain what you found clearly. Never invent facts or speculate.",
       "permission": {
         "edit": "deny", "bash": "deny", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "deny",
         "external_directory": "allow", "todowrite": "deny",
-        "webfetch": "deny", "websearch": "deny", "lsp": "allow",
-        "skill": { "read": "allow", "plan": "allow", "system-tools": "allow" },
+        "webfetch": "deny", "lsp": "allow",
+        "skill": { "read": "allow", "plan": "allow", "system-tools": "allow", "doc-scout": "allow", "fact-checker": "allow" },
         "question": "allow", "doom_loop": "allow"
       },
       "tools": {
@@ -142,16 +135,17 @@
       "mode": "primary",
       "description": "All research: scientific, web, documentation, fact-checking.",
       "temperature": 0.15,
-      "prompt": "You are a research specialist.",
+      "prompt": "You are a research specialist. Search the web, read documentation, find academic papers, and verify facts. Use arXiv for scientific papers, PubChem for chemical compounds, and web-search for general research. Cross-check information from multiple sources. Save findings using research-save. Always cite sources.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "webfetch": "allow", "lsp": "allow",
         "skill": {
           "deep-research": "allow", "scientific-research": "allow",
           "scientific-computing": "allow", "doc-scout": "allow",
-          "fact-checker": "allow", "system-tools": "allow"
+          "fact-checker": "allow", "system-tools": "allow",
+          "stop-slop": "allow", "mcp-builder": "allow"
         },
         "question": "allow", "doom_loop": "ask"
       },
@@ -171,16 +165,17 @@
       "mode": "primary",
       "description": "Developer. Writes, debugs y refactoriza.",
       "temperature": 0.15,
-      "prompt": "You are a Developer specialist.",
+      "prompt": "You are a Developer specialist. You write, debug, refactor, and test code. Follow this workflow: understand requirements first, plan your approach, implement changes, run linting and formatting (ruff for Python), write tests, verify everything passes, then commit. Use git for version control. Ask clarifying questions when requirements are ambiguous.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
+        "webfetch": "allow", "lsp": "allow",
+"skill": {
           "coding": "allow", "refactoring": "allow", "test-writer": "allow",
           "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
+          "systematic-debugging": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
         },
         "question": "allow", "doom_loop": "ask"
       },
@@ -199,16 +194,17 @@
       "mode": "primary",
       "description": "Web developer. Frontend, backend, APIs.",
       "temperature": 0.15,
-      "prompt": "You are a web development specialist.",
+      "prompt": "You are a web development specialist. Build frontend and backend web applications. Use the browser tools for testing UIs, debugging layouts, and verifying interactions. Follow web standards and best practices for accessibility, performance, and security. Write responsive designs and cross-browser compatible code. Use git for version control.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
+        "webfetch": "allow", "lsp": "allow",
+"skill": {
           "coding": "allow", "refactoring": "allow", "test-writer": "allow",
           "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
+          "systematic-debugging": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
         },
         "question": "allow", "doom_loop": "ask"
       },
@@ -231,15 +227,16 @@
       "mode": "primary",
       "description": "Code review, testing, and refactoring.",
       "temperature": 0.15,
-      "prompt": "You are a code quality specialist.",
+      "prompt": "You are a code quality specialist. Review code for bugs, security vulnerabilities, performance issues, and style consistency. Use SonarQube tools to analyze code quality metrics. Write tests to verify correctness. Suggest refactoring improvements that preserve behavior. Reject code that does not meet quality standards with specific reasoning.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
+        "webfetch": "allow", "lsp": "allow",
         "skill": {
           "code-reviewer": "allow", "test-writer": "allow",
-          "tdd": "allow", "refactoring": "allow", "system-tools": "allow"
+          "tdd": "allow", "refactoring": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
         },
         "question": "allow", "doom_loop": "ask"
       },
@@ -264,16 +261,17 @@
       "mode": "primary",
       "temperature": 0.1,
       "description": "Handles project building and compilation tasks.",
-      "prompt": "You are a build specialist.",
+      "prompt": "You are a build specialist. Handle project compilation, bundling, packaging, and CI/CD configuration. Configure build systems (webpack, esbuild, CMake, Make, etc.) and ensure reproducible builds. Run quality checks with SonarQube before shipping. Keep build times fast and artifacts minimal.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": {
+        "webfetch": "allow", "lsp": "allow",
+"skill": {
           "coding": "allow", "refactoring": "allow", "test-writer": "allow",
           "tdd": "allow", "commit-message": "allow",
-          "systematic-debugging": "allow", "system-tools": "allow"
+          "systematic-debugging": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
         },
         "question": "allow", "doom_loop": "ask"
       },
@@ -298,13 +296,13 @@
       "mode": "primary",
       "temperature": 0.15,
       "description": "Refactors code improving structure and readability.",
-      "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.",
+      "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior. Use comby for structural code transformations across multiple files. Make one focused refactor per commit. Never mix refactoring with feature changes or bug fixes. Always verify behavior is preserved after refactoring. Prefer small, safe, incremental changes over large rewrites.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "system-tools": "allow", "refactoring": "allow" },
+        "webfetch": "allow", "lsp": "allow",
+        "skill": { "system-tools": "allow", "refactoring": "allow", "stop-slop": "allow", "test-writer": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -322,13 +320,13 @@
       "mode": "primary",
       "temperature": 0.15,
       "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
-      "prompt": "You are a TypeScript/JavaScript developer. Load the coding skill.",
+      "prompt": "You are a TypeScript/JavaScript developer. Build applications with TypeScript, Node.js, React, Next.js, NestJS, and modern JS frameworks. Use the TypeScript LSP for type checking and IntelliSense. Follow TypeScript best practices: strict mode, proper typing, no anys. Write tests and run them. Use context7 for library documentation. Commit working code.",
       "permission": {
         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
         "grep": "allow", "list": "allow", "task": "allow",
         "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "system-tools": "allow" },
+        "webfetch": "allow", "lsp": "allow",
+        "skill": { "coding": "allow", "refactoring": "allow", "test-writer": "allow", "tdd": "allow", "commit-message": "allow", "system-tools": "allow", "stop-slop": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -345,14 +343,14 @@
     "rust-dev": {
       "mode": "primary",
       "temperature": 0.15,
-      "description": "Rust developer. Cargo, crates, systems programming.",
-      "prompt": "You are a Rust developer. Load the coding skill.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+"description": "Rust developer. Cargo, crates, systems programming.",
+       "prompt": "You are a Rust developer.\nBuild systems-level applications with Rust, Cargo, and crates. Follow Rust idioms: ownership, borrowing, lifetimes, zero-cost abstractions. Use rust-analyzer LSP for real-time feedback. Run clippy and fmt before committing. Write tests and benchmarks. Prefer safe Rust; use unsafe only when justified and documented.",
+       "permission": {
+         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+         "grep": "allow", "list": "allow", "task": "allow",
+         "external_directory": "allow", "todowrite": "allow",
+         "webfetch": "allow", "lsp": "allow",
+         "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -369,14 +367,14 @@
     "cpp-dev": {
       "mode": "primary",
       "temperature": 0.15,
-      "description": "C/C++ developer. CMake, Make, systems programming.",
-      "prompt": "You are a C/C++ developer. Load the coding skill.",
-      "permission": {
-        "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
-        "grep": "allow", "list": "allow", "task": "allow",
-        "external_directory": "allow", "todowrite": "allow",
-        "webfetch": "allow", "websearch": "allow", "lsp": "allow",
-        "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow" },
+"description": "C/C++ developer. CMake, Make, systems programming.",
+       "prompt": "You are a C/C++ developer.\nBuild systems-level applications with C, C++, CMake, and Make. Follow modern C++ practices (C++17/20/23). Use clangd LSP for code analysis. Run sanitizers (ASan, UBSan, TSan) for memory safety. Write unit tests. Avoid undefined behavior. Prefer RAII, smart pointers, and the STL over manual resource management.",
+       "permission": {
+         "edit": "allow", "bash": "allow", "read": "allow", "glob": "allow",
+         "grep": "allow", "list": "allow", "task": "allow",
+         "external_directory": "allow", "todowrite": "allow",
+         "webfetch": "allow", "lsp": "allow",
+         "skill": { "coding": "allow", "refactoring": "allow", "system-tools": "allow", "stop-slop": "allow", "tdd": "allow", "test-writer": "allow" },
         "question": "allow", "doom_loop": "ask"
       },
       "tools": {
@@ -531,13 +529,15 @@
     "sonarqube_search_sonar_projects": "allow",
     "memos_*": "allow",
     "skill": {
-      "build": "deny", "plan": "deny", "read": "deny", "yolo": "deny",
+      "build": "deny", "plan": "deny", "read": "deny",
       "coding": "deny", "scientific-research": "deny",
       "scientific-computing": "deny", "deep-research": "deny",
       "doc-scout": "deny", "fact-checker": "deny",
       "code-reviewer": "deny", "refactoring": "deny",
       "test-writer": "deny", "tdd": "deny", "commit-message": "deny",
-      "systematic-debugging": "deny"
+      "systematic-debugging": "deny",
+      "mcp-builder": "deny", "webapp-testing": "deny",
+      "frontend-design": "deny", "stop-slop": "deny"
     }
   },
 
