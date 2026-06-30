@@ -2,10 +2,10 @@ import { type Plugin, tool } from "@opencode-ai/plugin"
 
 const MCP_MAP = {
   "context7": "@upstash/context7-mcp",
-  "web-search": "mcp-duckduckgo",
+  "web-search": "searxng-mcp (Python)",
   "arxiv": "arxiv-mcp-server",
   "pdf": "@sylphx/pdf-reader-mcp",
-  "git": "git-mcp-server",
+  "git": "@cyanheads/git-mcp-server",
   "pubchem": "@cyanheads/pubchem-mcp-server",
   "playwright": "@playwright/mcp",
   "sequential-thinking": "mcp-sequential-thinking",
@@ -40,7 +40,13 @@ export const VerifyDepsPlugin: Plugin = async (ctx) => {
           }
           if (args.category === "all" || args.category === "mcp") {
             for (const [name, pkg] of Object.entries(MCP_MAP)) {
-              results.push(await check(`mcp: ${name}`, `npx -y ${pkg} --version 2>&1`, false, `npx -y ${pkg}`))
+              if (name === "web-search") {
+                // searxng-mcp is a local Python script, not an npm package
+                const home = process.env.HOME || process.env.USERPROFILE || ""
+                results.push(await check("mcp: web-search", `test -f ${home}/.config/opencode/bin/searxng-mcp.py && echo "ok"`, false, "Run setup.py or copy bin/searxng-mcp.py manually"))
+              } else {
+                results.push(await check(`mcp: ${name}`, `npx -y ${pkg} --version 2>&1`, false, `npx -y ${pkg}`))
+              }
             }
           }
           const missing = results.filter(r => !r.found)

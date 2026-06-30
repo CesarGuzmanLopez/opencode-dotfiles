@@ -15,7 +15,7 @@ export const PlotextPlugin: Plugin = async (ctx) => {
         },
         async execute(args, context) {
           const dir = context.worktree || context.directory || "."
-          // Safe: pass params via a temp JSON file, not interpolated into the script
+          // Safe: pass params via temp JSON file, not interpolated into the script
           const params = JSON.stringify({
             type: args.type,
             data: args.data,
@@ -25,7 +25,7 @@ export const PlotextPlugin: Plugin = async (ctx) => {
             width: args.width || 80,
           })
           const script = `
-import json, sys, os, tempfile
+import json, sys, os
 try:
     import plotext as plt
 except ImportError:

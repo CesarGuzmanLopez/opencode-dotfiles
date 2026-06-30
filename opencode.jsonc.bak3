@@ -1,0 +1,1554 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "plan",
+  "model": "guzman-lopez/normal-gratis",
+  "autoupdate": "notify",
+  "plugin": [],
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "keep": { "tokens": 2000 },
+    "buffer": 10000
+  },
+  "provider": {
+    "guzman-lopez": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "guzman-lopez",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "pdf"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "options": {
+        "baseURL": "https://llm.guzman-lopez.com/v1",
+        "apiKey": "26Ts_4ggCtJr9kSkppMZge-LQGYryTkDIK6mM-O2hOI"
+      },
+      "models": {
+    "pensamiento-profundo-caro": {
+      "name": "Pensamiento Profundo",
+      "limit": { "context": 235930, "output": 65536 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+    "tareas-avanzadas": {
+      "name": "Tareas Avanzadas",
+      "limit": { "context": 900000, "output": 65536 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+    "normal": {
+      "name": "Normal",
+      "limit": { "context": 900000, "output": 32768 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+    "vision": {
+      "name": "Visión",
+      "limit": { "context": 117965, "output": 16384 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+    "normal-gratis": {
+      "name": "Normal Gratis",
+      "limit": { "context": 500000, "output": 16384 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        },
+    "flash": {
+      "name": "Flash",
+      "limit": { "context": 115200, "output": 8192 },
+      "capabilities": {
+            "tools": true,
+            "vision": true,
+            "streaming": true,
+            "function_calling": true,
+            "parallel_tool_calls": true
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+  "plan": {
+    "mode": "primary",
+    "description": "Planning, analysis, and documentation research. Read-only.",
+    "temperature": 0.7,
+    "prompt": "You are a creative tech lead for planning and research. Think broadly, explore multiple angles with web-search and arxiv, use sequential-thinking to reason step by step, and store discoveries in memory. Break ambiguous requirements into concrete tasks, identify risks early, and delegate execution to specialist agents. Your plans should be imaginative but grounded \u2014 you are supervised, so take risks.",
+    "permission": {
+      "edit": "deny",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "read": "allow",
+        "plan": "allow",
+        "system-tools": "allow",
+        "doc-scout": "allow",
+        "fact-checker": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "allow"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "memory_*": true,
+      "context7_*": true,
+      "web-search_*": true,
+      "arxiv_search_papers": true,
+      "arxiv_get_abstract": true,
+      "arxiv_download_paper": true,
+      "arxiv_read_paper": true,
+      "arxiv_list_papers": true,
+      "arxiv_semantic_search": true,
+      "arxiv_watch_topic": true,
+      "arxiv_check_alerts": true,
+      "pdf_*": true
+    }
+  },
+  "read": {
+    "mode": "primary",
+    "description": "Pure read-only mode. Minimal access.",
+    "temperature": 0.2,
+    "prompt": "You are a read-only assistant. Read files, search code with grep/glob, look up documentation with context7, and summarize clearly. You cannot edit or run commands \u2014 permissions enforce that. Stay factual, never speculate.",
+    "permission": {
+      "edit": "deny",
+      "bash": "deny",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "deny",
+      "external_directory": "allow",
+      "todowrite": "deny",
+      "webfetch": "deny",
+      "lsp": "allow",
+      "skill": {
+        "plan": "allow",
+        "read": "allow",
+        "doc-scout": "allow",
+        "fact-checker": "allow",
+        "system-tools": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "allow"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "pdf_*": true,
+      "arxiv_search_papers": true,
+      "arxiv_get_abstract": true,
+      "arxiv_download_paper": true,
+      "arxiv_read_paper": true,
+      "arxiv_list_papers": true,
+      "arxiv_semantic_search": true,
+      "arxiv_watch_topic": true,
+      "arxiv_check_alerts": true,
+      "web-search_*": true,
+      "context7_*": true
+    }
+  },
+  "research": {
+    "mode": "primary",
+    "description": "All research: scientific, web, documentation, fact-checking.",
+    "temperature": 0.5,
+    "prompt": "You are a research specialist. Use arxiv for scientific papers, pubchem for compounds, web-search for general queries, and context7 for library docs. Cross-check sources. Save findings with research-save. Follow unexpected leads \u2014 serendipity is part of research.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "deep-research": "allow",
+        "scientific-research": "allow",
+        "scientific-computing": "allow",
+        "doc-scout": "allow",
+        "fact-checker": "allow",
+        "system-tools": "allow",
+        "stop-slop": "allow",
+        "mcp-builder": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "memory_*": true,
+      "arxiv_search_papers": true,
+      "arxiv_get_abstract": true,
+      "arxiv_download_paper": true,
+      "arxiv_read_paper": true,
+      "arxiv_list_papers": true,
+      "arxiv_semantic_search": true,
+      "arxiv_watch_topic": true,
+      "arxiv_check_alerts": true,
+      "pdf_*": true,
+      "web-search_*": true,
+      "context7_*": true,
+      "pubchem_*": true
+    }
+  },
+  "coding": {
+    "mode": "primary",
+    "description": "Developer. Writes, debugs y refactoriza.",
+    "temperature": 0.5,
+    "prompt": "You are a Developer specialist. Write, debug, refactor, and test code. Use git for diffs, commits, branches, and history. Use sequential-thinking to reason through complex logic. Look up APIs with context7. Run ruff for Python linting. Write tests, verify they pass, then commit. Think beyond the obvious solution.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "test-writer": "allow",
+        "tdd": "allow",
+        "commit-message": "allow",
+        "systematic-debugging": "allow",
+        "system-tools": "allow",
+        "mcp-builder": "allow",
+        "stop-slop": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "web-search_*": true,
+      "context7_*": true,
+      "pdf_*": true
+    }
+  },
+  "coding-web": {
+    "mode": "primary",
+    "description": "Web developer. Frontend, backend, APIs.",
+    "temperature": 0.5,
+    "prompt": "You are a web development specialist. Build frontend and backend web apps. Use playwright (browser_navigate, browser_click, browser_snapshot, browser_fill_form, etc.) to test UIs, debug layouts, and verify interactions. Use context7 for framework docs (React, Next.js, Express). Use git for changes. Write responsive, accessible, performant code.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "test-writer": "allow",
+        "tdd": "allow",
+        "commit-message": "allow",
+        "systematic-debugging": "allow",
+        "system-tools": "allow",
+        "webapp-testing": "allow",
+        "frontend-design": "allow",
+        "stop-slop": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "browser_navigate": true,
+      "browser_click": true,
+      "browser_type": true,
+      "browser_snapshot": true,
+      "browser_take_screenshot": true,
+      "browser_evaluate": true,
+      "browser_wait_for": true,
+      "browser_tabs": true,
+      "browser_fill_form": true,
+      "browser_hover": true,
+      "browser_select_option": true,
+      "browser_close": true,
+      "browser_file_upload": true,
+      "browser_resize": true,
+      "browser_run_code_unsafe": true,
+      "browser_network_request": true,
+      "browser_handle_dialog": true,
+      "browser_press_key": true,
+      "web-search_*": true,
+      "context7_*": true,
+      "pdf_*": true
+    }
+  },
+  "code-quality": {
+    "mode": "primary",
+    "description": "Code review, testing, and refactoring.",
+    "temperature": 0.3,
+    "prompt": "You are a code quality specialist. Run sonarqube tools (search_sonar_issues, get_sonar_fix_plan, get_quality_gate_status) to analyze code. Use git diff and log to review changes. Write tests, check for bugs, security issues, and style. Reject code that doesn't meet standards \u2014 be specific.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "code-reviewer": "allow",
+        "test-writer": "allow",
+        "tdd": "allow",
+        "refactoring": "allow",
+        "system-tools": "allow",
+        "stop-slop": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "sonarqube_search_sonar_issues": true,
+      "sonarqube_get_sonar_issue_context": true,
+      "sonarqube_get_sonar_fix_plan": true,
+      "sonarqube_get_quality_gate_status": true,
+      "sonarqube_get_rule_details": true,
+      "sonarqube_get_component_measures": true,
+      "sonarqube_search_sonar_projects": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "pdf_*": true
+    }
+  },
+  "build": {
+    "mode": "primary",
+    "temperature": 0.3,
+    "description": "Handles project building and compilation tasks.",
+    "prompt": "You are a build specialist. Compile, bundle, package, and configure CI/CD. Use sonarqube tools (get_component_measures, get_quality_gate_status, get_sonar_fix_plan) to gate quality before shipping. Use git to track build config changes. Keep builds fast and artifacts lean.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "test-writer": "allow",
+        "tdd": "allow",
+        "commit-message": "allow",
+        "systematic-debugging": "allow",
+        "system-tools": "allow",
+        "mcp-builder": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "sonarqube_search_sonar_issues": true,
+      "sonarqube_get_sonar_issue_context": true,
+      "sonarqube_get_sonar_fix_plan": true,
+      "sonarqube_get_quality_gate_status": true,
+      "sonarqube_get_rule_details": true,
+      "sonarqube_get_component_measures": true,
+      "sonarqube_search_sonar_projects": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "pdf_*": true
+    }
+  },
+  "refactoring": {
+    "mode": "primary",
+    "temperature": 0.4,
+    "description": "Refactors code improving structure and readability.",
+    "prompt": "You are a refactoring specialist. Improve code structure without changing behavior. Use comby for multi-file structural transformations. Use git diff to verify only intended changes. One refactor per commit. Prefer small, safe steps over big rewrites.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "system-tools": "allow",
+        "refactoring": "allow",
+        "stop-slop": "allow",
+        "test-writer": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "context7_*": true,
+      "pdf_*": true
+    }
+  },
+  "typescript-dev": {
+    "mode": "primary",
+    "temperature": 0.5,
+    "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
+    "prompt": "You are a TypeScript/JavaScript developer. Use context7 to look up framework docs (React, Next.js, NestJS, Express). Use git for branches, commits, and code review. The TypeScript LSP catches type errors \u2014 keep strict mode, avoid anys. Write tests. Build clean, well-typed applications.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "test-writer": "allow",
+        "tdd": "allow",
+        "commit-message": "allow",
+        "systematic-debugging": "allow",
+        "system-tools": "allow",
+        "stop-slop": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "context7_*": true,
+      "web-search_*": true,
+      "pdf_*": true
+    }
+  },
+  "rust-dev": {
+    "mode": "primary",
+    "temperature": 0.5,
+    "description": "Rust developer. Cargo, crates, systems programming.",
+    "prompt": "You are a Rust developer. Use cargo for builds, tests, and deps. The rust-analyzer LSP gives real-time feedback \u2014 watch for borrow checker and lifetime hints. Run clippy and fmt before committing. Use git to manage changes. Prefer safe Rust; unsafe only when justified.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "system-tools": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "context7_*": true,
+      "web-search_*": true,
+      "pdf_*": true
+    }
+  },
+  "cpp-dev": {
+    "mode": "primary",
+    "temperature": 0.5,
+    "description": "C/C++ developer. CMake, Make, systems programming.",
+    "prompt": "You are a C/C++ developer. Use CMake/Make for builds. The clangd LSP provides code analysis \u2014 watch its diagnostics. Use git for changes. Run sanitizers (ASan, UBSan) for memory safety. Write unit tests. Prefer modern C++ (17/20/23), RAII, and STL over raw pointers.",
+    "permission": {
+      "edit": "allow",
+      "bash": "allow",
+      "read": "allow",
+      "glob": "allow",
+      "grep": "allow",
+      "list": "allow",
+      "task": "allow",
+      "external_directory": "allow",
+      "todowrite": "allow",
+      "webfetch": "allow",
+      "lsp": "allow",
+      "skill": {
+        "coding": "allow",
+        "refactoring": "allow",
+        "system-tools": "allow"
+      },
+      "question": "allow",
+      "doom_loop": "ask"
+    },
+    "tools": {
+      "memos_*": true,
+      "sequential-thinking": true,
+      "git_status": true,
+      "git_add": true,
+      "git_commit": true,
+      "git_diff": true,
+      "git_log": true,
+      "git_push": true,
+      "git_pull": true,
+      "git_checkout": true,
+      "git_branch": true,
+      "git_show": true,
+      "git_merge": true,
+      "git_fetch": true,
+      "git_reset": true,
+      "git_stash": true,
+      "context7_*": true,
+      "web-search_*": true,
+      "pdf_*": true
+    }
+  }
+},
+
+  "lsp": "allow",
+"skill": {
+          "read": "allow",
+          "plan": "allow",
+          "system-tools": "allow",
+          "doc-scout": "allow",
+          "fact-checker": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true,
+        "context7_*": true,
+        "web-search_*": true,
+        "arxiv_search_papers": true,
+        "arxiv_get_abstract": true,
+        "arxiv_download_paper": true,
+        "arxiv_read_paper": true,
+        "arxiv_list_papers": true,
+        "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true,
+        "arxiv_check_alerts": true,
+        "pdf_*": true
+      }
+    },
+    "read": {
+      "mode": "primary",
+      "description": "Pure read-only mode. Minimal access.",
+      "temperature": 0.1,
+      "prompt": "You are a read-only assistant.\nYou can read files, search code, and answer questions. You cannot edit files, run commands, or make any changes. When asked about code, read the relevant files first, then explain what you found clearly. Never invent facts or speculate.",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "deny",
+        "external_directory": "allow",
+        "todowrite": "deny",
+        "webfetch": "deny",
+        "lsp": "allow",
+"skill": {
+          "plan": "allow",
+          "read": "allow",
+          "doc-scout": "allow",
+          "fact-checker": "allow",
+          "system-tools": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "allow"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "pdf_*": true,
+        "arxiv_search_papers": true,
+        "arxiv_get_abstract": true,
+        "arxiv_download_paper": true,
+        "arxiv_read_paper": true,
+        "arxiv_list_papers": true,
+        "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true,
+        "arxiv_check_alerts": true,
+        "web-search_*": true,
+        "context7_*": true
+      }
+    },
+    "research": {
+      "mode": "primary",
+      "description": "All research: scientific, web, documentation, fact-checking.",
+      "temperature": 0.15,
+      "prompt": "You are a research specialist.\nSearch the web, read documentation, find academic papers, and verify facts. Use arXiv for scientific papers, PubChem for chemical compounds, and web-search for general research. Cross-check information from multiple sources. Save findings using research-save. Always cite sources.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "deep-research": "allow",
+          "scientific-research": "allow",
+          "scientific-computing": "allow",
+          "doc-scout": "allow",
+          "fact-checker": "allow",
+          "system-tools": "allow",
+          "stop-slop": "allow",
+          "mcp-builder": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "memory_*": true,
+        "arxiv_search_papers": true,
+        "arxiv_get_abstract": true,
+        "arxiv_download_paper": true,
+        "arxiv_read_paper": true,
+        "arxiv_list_papers": true,
+        "arxiv_semantic_search": true,
+        "arxiv_watch_topic": true,
+        "arxiv_check_alerts": true,
+        "pdf_*": true,
+        "web-search_*": true,
+        "context7_*": true,
+        "pubchem_*": true
+      }
+    },
+    "coding": {
+      "mode": "primary",
+      "description": "Developer. Writes, debugs y refactoriza.",
+      "temperature": 0.15,
+      "prompt": "You are a Developer specialist.\nYou write, debug, refactor, and test code. Follow this workflow: understand requirements first, plan your approach, implement changes, run linting/formatting (ruff for Python), write tests, verify everything passes, then commit. Use git for version control. Ask clarifying questions when requirements are ambiguous.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "coding": "allow",
+          "refactoring": "allow",
+          "test-writer": "allow",
+          "tdd": "allow",
+          "commit-message": "allow",
+          "systematic-debugging": "allow",
+          "system-tools": "allow",
+          "mcp-builder": "allow",
+          "stop-slop": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "web-search_*": true,
+        "context7_*": true,
+        "pdf_*": true
+      }
+    },
+    "coding-web": {
+      "mode": "primary",
+      "description": "Web developer. Frontend, backend, APIs.",
+      "temperature": 0.15,
+      "prompt": "You are a web development specialist.\nBuild frontend and backend web applications. Use the browser tools for testing UIs, debugging layouts, and verifying interactions. Follow web standards and best practices for accessibility, performance, and security. Write responsive designs and cross-browser compatible code. Use git for version control.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "coding": "allow",
+          "refactoring": "allow",
+          "test-writer": "allow",
+          "tdd": "allow",
+          "commit-message": "allow",
+          "systematic-debugging": "allow",
+          "system-tools": "allow",
+          "webapp-testing": "allow",
+          "frontend-design": "allow",
+          "stop-slop": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "browser_navigate": true,
+        "browser_click": true,
+        "browser_type": true,
+        "browser_snapshot": true,
+        "browser_take_screenshot": true,
+        "browser_evaluate": true,
+        "browser_wait_for": true,
+        "browser_tabs": true,
+        "browser_fill_form": true,
+        "browser_hover": true,
+        "browser_select_option": true,
+        "browser_close": true,
+        "browser_file_upload": true,
+        "browser_resize": true,
+        "browser_run_code_unsafe": true,
+        "browser_network_request": true,
+        "browser_handle_dialog": true,
+        "browser_press_key": true,
+        "web-search_*": true,
+        "context7_*": true,
+        "pdf_*": true
+      }
+    },
+    "code-quality": {
+      "mode": "primary",
+      "description": "Code review, testing, and refactoring.",
+      "temperature": 0.15,
+      "prompt": "You are a code quality specialist.\nReview code for bugs, security vulnerabilities, performance issues, and style consistency. Use SonarQube tools to analyze code quality metrics. Write tests to verify correctness. Suggest refactoring improvements that preserve behavior. Reject code that doesn't meet quality standards with specific reasoning.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "code-reviewer": "allow", "test-writer": "allow",
+          "tdd": "allow", "refactoring": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "sonarqube_search_sonar_issues": true,
+        "sonarqube_get_sonar_issue_context": true,
+        "sonarqube_get_sonar_fix_plan": true,
+        "sonarqube_get_quality_gate_status": true,
+        "sonarqube_get_rule_details": true,
+        "sonarqube_get_component_measures": true,
+        "sonarqube_search_sonar_projects": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "pdf_*": true
+      }
+    },
+    "build": {
+      "mode": "primary",
+      "temperature": 0.1,
+      "description": "Handles project building and compilation tasks.",
+      "prompt": "You are a build specialist.\nHandle project compilation, bundling, packaging, and CI/CD configuration. Configure build systems (webpack, esbuild, CMake, Make, etc.) and ensure reproducible builds. Run quality checks with SonarQube before shipping. Keep build times fast and artifacts minimal.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "coding": "allow",
+          "refactoring": "allow",
+          "test-writer": "allow",
+          "tdd": "allow",
+          "commit-message": "allow",
+          "systematic-debugging": "allow",
+          "system-tools": "allow",
+          "mcp-builder": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "sonarqube_search_sonar_issues": true,
+        "sonarqube_get_sonar_issue_context": true,
+        "sonarqube_get_sonar_fix_plan": true,
+        "sonarqube_get_quality_gate_status": true,
+        "sonarqube_get_rule_details": true,
+        "sonarqube_get_component_measures": true,
+        "sonarqube_search_sonar_projects": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "pdf_*": true
+      }
+    },
+    "refactoring": {
+      "mode": "primary",
+      "temperature": 0.15,
+      "description": "Refactors code improving structure and readability.",
+      "prompt": "You are a refactoring specialist. Improve code structure while preserving behavior.\nUse comby for structural code transformations across multiple files. Make one focused refactor per commit. Never mix refactoring with feature changes or bug fixes. Always verify behavior is preserved after refactoring. Prefer small, safe, incremental changes over large rewrites.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+"skill": {
+          "system-tools": "allow",
+          "refactoring": "allow",
+          "stop-slop": "allow",
+          "test-writer": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "context7_*": true,
+        "pdf_*": true
+      }
+    },
+    "typescript-dev": {
+      "mode": "primary",
+      "temperature": 0.15,
+      "description": "TypeScript/JavaScript developer. Frontend, backend, Node.js, React, Next.js.",
+      "prompt": "You are a TypeScript/JavaScript developer.\nBuild applications with TypeScript, Node.js, React, Next.js, NestJS, and modern JS frameworks. Use the TypeScript LSP for type checking and IntelliSense. Follow TypeScript best practices: strict mode, proper typing, no anys. Write tests and run them. Use context7 for library documentation. Commit working code.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+"skill": {
+          "coding": "allow", "refactoring": "allow", "test-writer": "allow",
+          "tdd": "allow", "commit-message": "allow",
+          "systematic-debugging": "allow", "system-tools": "allow",
+          "stop-slop": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "context7_*": true,
+        "web-search_*": true,
+        "pdf_*": true
+      }
+    },
+    "rust-dev": {
+      "mode": "primary",
+      "temperature": 0.15,
+      "description": "Rust developer. Cargo, crates, systems programming.",
+      "prompt": "You are a Rust developer.\nBuild systems-level applications with Rust, Cargo, and crates. Follow Rust idioms: ownership, borrowing, lifetimes, zero-cost abstractions. Use rust-analyzer LSP for real-time feedback. Run clippy and fmt before committing. Write tests and benchmarks. Prefer safe Rust; use unsafe only when justified and documented.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "coding": "allow",
+          "refactoring": "allow",
+          "system-tools": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "context7_*": true,
+        "web-search_*": true,
+        "pdf_*": true
+      }
+    },
+    "cpp-dev": {
+      "mode": "primary",
+      "temperature": 0.15,
+      "description": "C/C++ developer. CMake, Make, systems programming.",
+      "prompt": "You are a C/C++ developer.\nBuild systems-level applications with C, C++, CMake, and Make. Follow modern C++ practices (C++17/20/23). Use clangd LSP for code analysis. Run sanitizers (ASan, UBSan, TSan) for memory safety. Write unit tests. Avoid undefined behavior. Prefer RAII, smart pointers, and the STL over manual resource management.",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "list": "allow",
+        "task": "allow",
+        "external_directory": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "lsp": "allow",
+        "skill": {
+          "coding": "allow",
+          "refactoring": "allow",
+          "system-tools": "allow"
+        },
+        "question": "allow",
+        "doom_loop": "ask"
+      },
+      "tools": {
+        "memos_*": true,
+        "sequential-thinking": true,
+        "git_status": true,
+        "git_add": true,
+        "git_commit": true,
+        "git_diff": true,
+        "git_log": true,
+        "git_push": true,
+        "git_pull": true,
+        "git_checkout": true,
+        "git_branch": true,
+        "git_show": true,
+        "git_merge": true,
+        "git_fetch": true,
+        "git_reset": true,
+        "git_stash": true,
+        "context7_*": true,
+        "web-search_*": true,
+        "pdf_*": true
+      }
+    }
+  },
+  "lsp": {
+    "php": {
+      "command": [
+        "/home/cesar/.nvm/versions/node/v20.20.2/bin/intelephense",
+        "--stdio"
+      ],
+      "extensions": [
+        ".php"
+      ],
+      "initialization": {
+        "intelephense": {
+          "environment": {
+            "stubs": [
+              "wordpress",
+              "php",
+              "internal"
+            ]
+          },
+          "files": {
+            "exclude": [
+              "**/node_modules/**",
+              "**/vendor/**"
+            ]
+          }
+        }
+      }
+    },
+    "typescript": {
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/typescript-language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".mts",
+        ".cts"
+      ]
+    },
+    "python": {
+      "command": [
+        "pylsp"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ],
+      "initialization": {
+        "pylsp": {
+          "plugins": {
+            "preload": {
+              "enabled": false
+            },
+            "pylint": {
+              "enabled": false
+            },
+            "mypy_ls": {
+              "enabled": false
+            },
+            "jedi_completion": {
+              "resolve_at_most": 5
+            }
+          }
+        }
+      }
+    },
+    "cpp": {
+      "command": [
+        "clangd"
+      ],
+      "extensions": [
+        ".cpp",
+        ".cxx",
+        ".cc",
+        ".c",
+        ".h",
+        ".hpp",
+        ".hxx"
+      ]
+    },
+    "rust": {
+      "command": [
+        "rust-analyzer"
+      ],
+      "extensions": [
+        ".rs"
+      ]
+    }
+  },
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/playwright-mcp",
+        "--browser",
+        "chromium",
+        "--executable-path",
+        "/home/cesar/.cache/ms-playwright/chromium-1224/chrome-linux64/chrome",
+        "--no-sandbox"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/mcp-server-sequential-thinking"
+      ]
+    },
+    "memory": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/mcp-server-memory"
+      ],
+      "env": {
+        "MEMORY_FILE_PATH": "/home/cesar/.config/opencode/memory/memory.json"
+      }
+    },
+    "context7": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/context7-mcp"
+      ]
+    },
+    "web-search": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/bin/searxng-mcp.sh"
+      ]
+    },
+    "arxiv": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.local/bin/arxiv-mcp-server",
+        "--storage-path",
+        "/home/cesar/.arxiv-mcp-server/papers"
+      ]
+    },
+    "pdf": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/pdf-reader-mcp"
+      ]
+    },
+    "git": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/git-mcp-server"
+      ]
+    },
+    "pubchem": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/node_modules/.bin/pubchem-mcp-server"
+      ]
+    },
+    "sonarqube": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "/home/cesar/.config/opencode/bin/sonarqube-mcp-wrapper.sh"
+      ]
+    },
+    "memos": {
+      "type": "remote",
+      "enabled": true,
+      "url": "http://217.154.101.35:8443/mcp",
+      "headers": {
+        "Authorization": "Bearer TU_MEMOS_TOKEN_AQUI"
+      }
+    }
+  },
+  "permission": {
+    "ruff": "allow",
+    "verify-deps": "allow",
+    "verify-opencode": "allow",
+    "web-search_*": "allow",
+    "arxiv_search_papers": "allow",
+    "arxiv_get_abstract": "allow",
+    "arxiv_download_paper": "allow",
+    "arxiv_read_paper": "allow",
+    "arxiv_list_papers": "allow",
+    "arxiv_semantic_search": "allow",
+    "arxiv_watch_topic": "allow",
+    "arxiv_check_alerts": "allow",
+    "git_status": "allow",
+    "git_add": "allow",
+    "git_commit": "allow",
+    "git_diff": "allow",
+    "git_log": "allow",
+    "git_push": "allow",
+    "git_pull": "allow",
+    "git_checkout": "allow",
+    "git_branch": "allow",
+    "git_show": "allow",
+    "git_merge": "allow",
+    "git_fetch": "allow",
+    "git_reset": "allow",
+    "git_stash": "allow",
+    "pdf_*": "allow",
+    "browser_navigate": "allow",
+    "browser_click": "allow",
+    "browser_type": "allow",
+    "browser_snapshot": "allow",
+    "browser_take_screenshot": "allow",
+    "browser_evaluate": "allow",
+    "browser_wait_for": "allow",
+    "browser_tabs": "allow",
+    "browser_fill_form": "allow",
+    "browser_hover": "allow",
+    "browser_select_option": "allow",
+    "browser_close": "allow",
+    "browser_file_upload": "allow",
+    "browser_resize": "allow",
+    "browser_run_code_unsafe": "allow",
+    "browser_network_request": "allow",
+    "browser_handle_dialog": "allow",
+    "browser_press_key": "allow",
+    "memory_*": "allow",
+    "pubchem_*": "allow",
+    "context7_*": "allow",
+    "sequential-thinking": "allow",
+    "sonarqube_search_sonar_issues": "allow",
+    "sonarqube_get_sonar_issue_context": "allow",
+    "sonarqube_get_sonar_fix_plan": "allow",
+    "sonarqube_get_quality_gate_status": "allow",
+    "sonarqube_get_rule_details": "allow",
+    "sonarqube_get_component_measures": "allow",
+    "sonarqube_search_sonar_projects": "allow",
+    "memos_*": "allow",
+    "skill": {
+      "build": "deny",
+      "plan": "deny",
+      "read": "deny",
+      "coding": "deny",
+      "scientific-research": "deny",
+      "scientific-computing": "deny",
+      "deep-research": "deny",
+      "doc-scout": "deny",
+      "fact-checker": "deny",
+      "code-reviewer": "deny",
+      "refactoring": "deny",
+      "test-writer": "deny",
+      "tdd": "deny",
+      "commit-message": "deny",
+      "systematic-debugging": "deny",
+      "mcp-builder": "deny",
+      "webapp-testing": "deny",
+      "frontend-design": "deny",
+      "stop-slop": "deny"
+    }
+  },
+  "tools": {
+    "git_status": true,
+    "git_add": true,
+    "git_commit": true,
+    "git_diff": true,
+    "git_log": true,
+    "git_push": true,
+    "git_pull": true,
+    "git_checkout": true,
+    "git_branch": true,
+    "git_show": true,
+    "git_merge": true,
+    "git_fetch": true,
+    "git_reset": true,
+    "git_stash": true,
+    "pdf_*": true,
+    "browser_navigate": true,
+    "browser_click": true,
+    "browser_type": true,
+    "browser_snapshot": true,
+    "browser_take_screenshot": true,
+    "browser_evaluate": true,
+    "browser_wait_for": true,
+    "browser_tabs": true,
+    "browser_fill_form": true,
+    "browser_hover": true,
+    "browser_select_option": true,
+    "browser_close": true,
+    "browser_file_upload": true,
+    "browser_resize": true,
+    "browser_run_code_unsafe": true,
+    "browser_network_request": true,
+    "browser_handle_dialog": true,
+    "browser_press_key": true,
+    "memory_*": true,
+    "web-search_*": true,
+    "context7_*": true,
+    "sonarqube_search_sonar_issues": true,
+    "sonarqube_get_sonar_issue_context": true,
+    "sonarqube_get_sonar_fix_plan": true,
+    "sonarqube_get_quality_gate_status": true,
+    "sonarqube_get_rule_details": true,
+    "sonarqube_get_component_measures": true,
+    "sonarqube_search_sonar_projects": true,
+    "sequential-thinking": true,
+    "memos_*": true
+  }
+}

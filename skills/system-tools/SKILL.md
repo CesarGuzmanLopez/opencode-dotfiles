@@ -4,20 +4,20 @@ description: Reference of CLI tools useful for AI agents, what they do, and how 
 ---
 Reference of CLI tools useful for AI agents.
 
-## Búsqueda
+## Busqueda
 - rg (ripgrep): buscar texto en archivos
 - fd: buscar archivos por nombre
 - bat: ver archivos con syntax highlighting
 - jq: procesar JSON
-- comby: búsqueda estructural de código
+- comby: busqueda estructural de codigo
 
-## Visualización
-- gnuplot: gráficas PNG/SVG
-- ttyplot: gráficas en tiempo real
-- plotext: gráficas en terminal (Python)
-- rich: tablas/árboles con colores (Python)
+## Visualizacion
+- gnuplot: graficas PNG/SVG
+- ttyplot: graficas en tiempo real
+- plotext: graficas en terminal (Python)
+- rich: tablas/arboles con colores (Python)
 
-## Instalación
+## Instalacion
 Arch:  sudo pacman -S <tool>
 macOS: brew install <tool>
 Debian: sudo apt install <tool>
@@ -25,4 +25,4 @@ Python: pip install <tool>
 
 ## Plugins relacionados
 - bat: muestra archivos con syntax highlighting
-- chart: genera gráficas en terminal con plotext
+- chart: genera graficas en terminal con plotext

@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@cyanheads/git-mcp-server": "latest",
     "@cyanheads/pubchem-mcp-server": "latest",
     "@opencode-ai/plugin": "1.17.11",
     "@playwright/mcp": "latest",
     "@sylphx/pdf-reader-mcp": "latest",
-    "@cyanheads/git-mcp-server": "latest",
     "@upstash/context7-mcp": "^3.2.2",
     "mcp-sequential-thinking": "^0.6.7",
     "mcp-server-memory": "^1.0.3",

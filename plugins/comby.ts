@@ -1,14 +1,5 @@
 import { type Plugin, tool } from "@opencode-ai/plugin"
 
-function buildCombyArgs(template: string, language: string | undefined, path: string, extraFlags: string[]): string[] {
-  const args = ["comby", "-matcher", template]
-  if (language) {
-    args.push("-lang", language)
-  }
-  args.push(...extraFlags, path)
-  return args
-}
-
 export const CombyPlugin: Plugin = async (ctx) => {
   return {
     tool: {
@@ -21,9 +12,9 @@ export const CombyPlugin: Plugin = async (ctx) => {
         },
         async execute(args, context) {
           const dir = context.worktree || context.directory || "."
+          const lang = args.language ? ["-lang", args.language] : []
           try {
-            const cmdArgs = buildCombyArgs(args.template, args.language, args.path, ["-json"])
-            const result = await Bun.$`cd ${dir} && ${cmdArgs}`.text()
+            const result = await Bun.$`cd ${dir} && comby -matcher '${args.template}' ${lang.join(' ')} -json ${args.path}`.text()
             const matches = JSON.parse(result)
             if (matches.length === 0) {
               return "No matches found"
@@ -49,20 +40,21 @@ export const CombyPlugin: Plugin = async (ctx) => {
         },
         async execute(args, context) {
           const dir = context.worktree || context.directory || "."
+          const lang = args.language ? ["-lang", args.language] : []
+          const writeFlag = args.apply ? ["--in-place"] : []
           try {
+            let result
             if (args.apply) {
-              const cmdArgs = buildCombyArgs(args.template, args.language, args.path, ["-rewrite", args.replacement, "--in-place"])
-              const result = await Bun.$`cd ${dir} && ${cmdArgs}`.text()
+              result = await Bun.$`cd ${dir} && comby -matcher '${args.template}' -rewrite '${args.replacement}' ${lang.join(' ')} ${writeFlag.join(' ')} ${args.path}`.text()
               return result || "Changes applied successfully"
             } else {
-              const cmdArgs = buildCombyArgs(args.template, args.language, args.path, ["-rewrite", args.replacement, "-json"])
-              const result = await Bun.$`cd ${dir} && ${cmdArgs}`.text()
+              result = await Bun.$`cd ${dir} && comby -matcher '${args.template}' -rewrite '${args.replacement}' ${lang.join(' ')} -json ${args.path}`.text()
               const changes = JSON.parse(result)
               if (changes.length === 0) {
                 return "No replacements made"
               }
               return JSON.stringify({
-                rewritten_source: `Would apply: comby -matcher '${args.template}' -rewrite '${args.replacement}' ${args.language ? "-lang " + args.language : ""} ${args.path}`
+                rewritten_source: `Would apply: comby -matcher '${args.template}' -rewrite '${args.replacement}' ${lang.join(' ')} ${args.path}`
               })
             }
           } catch (e: any) {

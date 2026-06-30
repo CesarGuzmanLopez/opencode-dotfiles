@@ -1,7 +1,6 @@
 # Dependencies
 node_modules/
 package-lock.json
-mcp-servers/
 
 # Ruff cache
 .ruff_cache/
@@ -12,23 +11,14 @@ Thumbs.db
 .vscode/
 *.bak
 
-# Wrapper scripts con tokens (NUNCA commitear)
-bin/sonarqube-mcp-wrapper.sh
-
-# Config personal — NUNCA commitear (contiene API keys)
+# API keys — NUNCA commitear
 opencode.jsonc
-
-# Secrets locales — NUNCA commitear
 .env
+.env.*
 *.key
+*.pem
 secrets.json
 
-# Test files
-test.js
-comby_test.js
+# Generated files
+setup.log
 __pycache__/
-
-# IDE
-.continue/
-
-.aider*

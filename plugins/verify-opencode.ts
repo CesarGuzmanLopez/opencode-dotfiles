@@ -20,18 +20,7 @@ export const VerifyOpencodePlugin: Plugin = async (ctx) => {
             }
           }
           const results = []
-          // JSONC has comments, use strip-json-comments then validate with python
-          results.push(await check(
-            "Config JSONC",
-            `python3 -c "
-import json, re, sys
-with open('${configPath}') as f:
-    # Strip single-line comments (JSONC format)
-    text = re.sub(r'//.*', '', f.read())
-    json.loads(text)
-    print('VALID')
-" 2>/dev/null || echo 'INVALID'`
-          ))
+          results.push(await check("Config JSONC", `python3 -c "import json, re; text = open('${configPath}').read(); text = re.sub(r'//.*', '', text); json.loads(text); print('VALID')" 2>/dev/null || echo INVALID`))
           try {
             const agents = await Bun.$`opencode agent list 2>&1`.timeout(10000).text()
             const count = agents.split("\n").filter(l => l.includes("primary")).length
