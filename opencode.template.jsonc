@@ -198,7 +198,8 @@
            "coding": "allow", "code-reviewer": "allow", "refactoring": "allow",
            "test-writer": "allow", "tdd": "allow", "commit-message": "allow",
            "systematic-debugging": "allow", "system-tools": "allow",
-           "stop-slop": "allow"
+           "stop-slop": "allow",
+           "doc-scout": "allow"
          },
          "question": "allow", "doom_loop": "ask"
        },

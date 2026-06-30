@@ -2000,8 +2000,9 @@ Ejemplos:
                     skill_key = f"{skill_dir.name}/SKILL.md"
                     if skill_key not in SKILLS:
                         dst = target / "skills" / skill_dir.name
-                        shutil.copytree(skill_dir, dst, dirs_exist_ok=True)
-    ok(f"{len(SKILLS)} skills generados")
+                        if skill_dir.resolve() != dst.resolve():
+                            shutil.copytree(skill_dir, dst, dirs_exist_ok=True)
+    ok(f"{len(SKILLS)} skills generados ({(target / 'skills').resolve()} — {len(list((target / 'skills').iterdir()))} dirs)")
 
     # 5. Generar archivos auxiliares
     write_file(target / "package.json", PACKAGE_JSON)
@@ -2011,7 +2012,7 @@ Ejemplos:
     # Configurar hook de pre-commit (seguridad: bloquea leaks de API keys)
     hooks_src = Path(__file__).parent / "hooks"
     hooks_dst = target / "hooks"
-    if hooks_src.exists():
+    if hooks_src.exists() and hooks_src.resolve() != hooks_dst.resolve():
         shutil.copytree(hooks_src, hooks_dst, dirs_exist_ok=True)
         for h in hooks_dst.iterdir():
             h.chmod(h.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
