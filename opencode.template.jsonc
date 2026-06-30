@@ -6,6 +6,20 @@
   "plugin": [],
 
   // ════════════════════════════════════════════════════════════════
+  // COMPACTACION AUTOMATICA DE CONTEXTO
+  // ════════════════════════════════════════════════════════════════
+  // OpenCode compacta la conversacion cuando se acerca al limite
+  // de contexto del modelo activo (definido en limit.context).
+  // keep.tokens: tokens de historial reciente a conservar
+  // buffer:      margen de seguridad antes del limite
+  "compaction": {
+    "auto": true,
+    "prune": true,
+    "keep": { "tokens": 2000 },
+    "buffer": 10000
+  },
+
+  // ════════════════════════════════════════════════════════════════
   // PROVEEDOR LLM
   // ════════════════════════════════════════════════════════════════
   // {API_KEY} se reemplaza automáticamente por setup.py
@@ -25,6 +39,7 @@
       "models": {
         "pensamiento-profundo-caro": {
           "name": "Pensamiento Profundo",
+          "limit": { "context": 235930, "output": 65536 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
@@ -33,6 +48,7 @@
         },
         "tareas-avanzadas": {
           "name": "Tareas Avanzadas",
+          "limit": { "context": 900000, "output": 65536 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
@@ -41,6 +57,7 @@
         },
         "normal": {
           "name": "Normal",
+          "limit": { "context": 900000, "output": 32768 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
@@ -49,6 +66,7 @@
         },
         "vision": {
           "name": "Visión",
+          "limit": { "context": 117965, "output": 16384 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
@@ -57,6 +75,7 @@
         },
         "normal-gratis": {
           "name": "Normal Gratis",
+          "limit": { "context": 500000, "output": 16384 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
@@ -65,6 +84,7 @@
         },
         "flash": {
           "name": "Flash",
+          "limit": { "context": 115200, "output": 8192 },
           "capabilities": {
             "tools": true, "vision": true, "streaming": true,
             "function_calling": true, "parallel_tool_calls": true
